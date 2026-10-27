@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../state/app_state.dart';
-import '../theme/app_theme.dart';
 import '../utils/formatters.dart';
 import '../utils/responsive.dart';
 import '../widgets/particle_burst.dart';
+import '../widgets/premium_home_ui.dart';
 import '../widgets/takeoff_success_overlay.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -116,22 +116,69 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Stack(
       children: [
-        // Positioned.fill —— 不再套 CenteredFrame,让桌面端主内容
-        // 铺满整个 IndexedStack 宽度。内部 Column 用 crossAxisAlignment:
-        // center 居中,空白从两侧流出,看上去仍是居中的。
         Positioned.fill(
           child: GestureDetector(
             onTapUp: _handleTap,
             behavior: HitTestBehavior.opaque,
-            child: SafeArea(
-              bottom: false,
-              child: r.isDesktop
-                  ? _buildDesktopLayout(r, state)
-                  : _buildMobileLayout(r, state),
+            child: FlightAtmosphere(
+              child: SafeArea(
+                bottom: false,
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 0, end: 1),
+                  duration: const Duration(milliseconds: 720),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, value, child) {
+                    return Opacity(
+                      opacity: value,
+                      child: Transform.translate(
+                        offset: Offset(0, 18 * (1 - value)),
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: Obx(() {
+                    final precision = state.settings.value.precisionEnum;
+                    final last = state.lastTakeoff.value;
+                    final countdown = last == null
+                        ? switch (precision) {
+                            CountdownPrecision.second => '--:--:--',
+                            CountdownPrecision.minute => '--:--',
+                            CountdownPrecision.hour => '-- 小时',
+                          }
+                        : formatDuration(
+                            DateTime.now().difference(last),
+                            precision,
+                          );
+                    final quotes = state.settings.value.quotes;
+                    final quote = quotes.isEmpty
+                        ? '每一次起飞都是一次冒险'
+                        : quotes[_quoteIndex % quotes.length];
+                    final nickname = state.profile.value?.nickname ?? '用户';
+
+                    if (r.isDesktop) {
+                      return _buildDesktopLayout(
+                        r: r,
+                        state: state,
+                        nickname: nickname,
+                        countdown: countdown,
+                        lastTakeoff: last,
+                        quote: quote,
+                      );
+                    }
+                    return _buildMobileLayout(
+                      r: r,
+                      state: state,
+                      nickname: nickname,
+                      countdown: countdown,
+                      lastTakeoff: last,
+                      quote: quote,
+                    );
+                  }),
+                ),
+              ),
             ),
           ),
         ),
-
         for (final layer in _particleLayers)
           ParticleBurst(
             key: layer.key,
@@ -143,7 +190,6 @@ class _HomeScreenState extends State<HomeScreen> {
               }
             },
           ),
-
         if (_pendingTakeoff != null)
           TakeoffSuccessOverlay(
             time: _pendingTakeoff!,
@@ -154,252 +200,112 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// 手机端:纵向堆叠,顶/中/底三块用 Spacer 撑开(原设计)
-  Widget _buildMobileLayout(Responsive r, AppState state) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // 问候 + 👋 同行，昵称在下一行；手机端与桌面端统一左对齐。
-        SizedBox(
-          width: double.infinity,
+  Widget _buildMobileLayout({
+    required Responsive r,
+    required AppState state,
+    required String nickname,
+    required String countdown,
+    required DateTime? lastTakeoff,
+    required String quote,
+  }) {
+    return CustomScrollView(
+      physics: const ClampingScrollPhysics(),
+      slivers: [
+        SliverFillRemaining(
+          hasScrollBody: false,
           child: Padding(
-            padding: r.padH(1.0),
+            padding: EdgeInsets.fromLTRB(r.gapLg, r.gapMd, r.gapLg, r.gapMd),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      _greeting(),
-                      style: TextStyle(
-                        fontSize: r.textXl,
-                        color: context.palette.textSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    SizedBox(width: r.gapXs),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: r.gap2xs),
-                      child: Text('👋', style: TextStyle(fontSize: r.text2xl)),
-                    ),
-                  ],
+                WelcomeHeader(greeting: _greeting(), nickname: nickname),
+                SizedBox(height: r.gapXl),
+                CountdownHeroCard(
+                  lastTakeoff: lastTakeoff,
+                  countdown: countdown,
+                  precisionLabel:
+                      state.settings.value.precisionEnum.displayName,
+                  totalRecords: state.totalRecords,
+                  currentStreak: state.currentStreak,
+                  compact: true,
                 ),
-                SizedBox(height: r.gapXs),
-                Obx(
-                  () => Text(
-                    state.profile.value?.nickname ?? '用户',
-                    style: TextStyle(
-                      fontSize: r.text4xl,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -1,
-                    ),
-                  ),
-                ),
+                const Spacer(),
+                QuotePanel(quote: quote, onNext: _nextQuote),
+                SizedBox(height: r.gapMd),
+                const TakeoffPrompt(),
               ],
             ),
           ),
         ),
-        const Spacer(),
-        Obx(() {
-          final last = state.lastTakeoff.value;
-          if (last == null || state.records.isEmpty) {
-            return const SizedBox.shrink();
-          }
-          final diff = DateTime.now().difference(last);
-          final display = formatDuration(
-            diff,
-            state.settings.value.precisionEnum,
-          );
-          return Column(
-            children: [
-              Text(
-                '距离上次起飞',
-                style: TextStyle(
-                  fontSize: r.textLg,
-                  color: context.palette.textSecondary,
-                ),
-              ),
-              SizedBox(height: r.gapSm),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  display,
-                  style: TextStyle(
-                    fontSize: r.textDisplay,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.primary,
-                    letterSpacing: -2,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
-                ),
-              ),
-            ],
-          );
-        }),
-        const Spacer(),
-        GestureDetector(
-          onTap: _nextQuote,
-          child: Obx(() {
-            final quotes = state.settings.value.quotes;
-            return AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              child: Text(
-                quotes.isEmpty
-                    ? '每一次起飞都是一次冒险'
-                    : quotes[_quoteIndex % quotes.length],
-                key: ValueKey(_quoteIndex),
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: r.textBase,
-                  color: context.palette.textLight,
-                ),
-              ),
-            );
-          }),
-        ),
-        SizedBox(height: r.gapLg),
-        Text(
-          '双击屏幕起飞',
-          style: TextStyle(
-            fontSize: r.textLg,
-            color: AppColors.primary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        SizedBox(height: r.gapLg),
       ],
     );
   }
 
-  /// 桌面端:纵向三段,每段都居中
-  ///   - 顶部:问候 + 昵称 + 👋(昵称和 emoji 一行,问候在上,整体居中)
-  ///   - 中部:距离上次起飞 + 大字 display(居中)
-  ///   - 底部:quote + "双击屏幕起飞" 提示(居中)
-  /// Spacer 三段分隔,使各段在垂直方向也均匀分布。
-  Widget _buildDesktopLayout(Responsive r, AppState state) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // ── 顶部:问候 + 昵称 + 👋，整体左对齐 ──────────────
-        SizedBox(
-          width: double.infinity,
-          child: Padding(
-            padding: r.padH(1.0),
-            child: Column(
+  Widget _buildDesktopLayout({
+    required Responsive r,
+    required AppState state,
+    required String nickname,
+    required String countdown,
+    required DateTime? lastTakeoff,
+    required String quote,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final horizontal = r.gapLg;
+        final vertical = r.gapLg;
+        return SingleChildScrollView(
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontal,
+            vertical: vertical,
+          ),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: max(0, constraints.maxHeight - vertical * 2),
+            ),
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  _greeting(),
-                  style: TextStyle(
-                    fontSize: r.textXl,
-                    color: context.palette.textSecondary,
-                    fontWeight: FontWeight.w500,
+                Expanded(
+                  flex: 5,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      WelcomeHeader(
+                        greeting: _greeting(),
+                        nickname: nickname,
+                        large: true,
+                      ),
+                      SizedBox(height: r.gap2xl),
+                      QuotePanel(quote: quote, onNext: _nextQuote),
+                      SizedBox(height: r.gapLg),
+                      const TakeoffPrompt(alignStart: true),
+                    ],
                   ),
                 ),
-                SizedBox(height: r.gapXs),
-                // 昵称 + 👋 emoji 同行,emoji 紧跟在文字后
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Obx(
-                      () => Text(
-                        state.profile.value?.nickname ?? '用户',
-                        style: TextStyle(
-                          fontSize: r.text4xl,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -1,
-                        ),
+                SizedBox(width: r.gap2xl),
+                Expanded(
+                  flex: 6,
+                  child: Align(
+                    alignment: Alignment.topRight,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 620),
+                      child: CountdownHeroCard(
+                        lastTakeoff: lastTakeoff,
+                        countdown: countdown,
+                        precisionLabel:
+                            state.settings.value.precisionEnum.displayName,
+                        totalRecords: state.totalRecords,
+                        currentStreak: state.currentStreak,
                       ),
                     ),
-                    SizedBox(width: r.gapXs),
-                    Padding(
-                      padding: EdgeInsets.only(bottom: r.gap2xs),
-                      child: Text('👋', style: TextStyle(fontSize: r.text2xl)),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
           ),
-        ),
-        const Spacer(),
-        // ── 中部:倒计时大字,居中 ──────────────────────
-        Obx(() {
-          final last = state.lastTakeoff.value;
-          if (last == null || state.records.isEmpty) {
-            return const SizedBox.shrink();
-          }
-          final diff = DateTime.now().difference(last);
-          final display = formatDuration(
-            diff,
-            state.settings.value.precisionEnum,
-          );
-          return Column(
-            children: [
-              Text(
-                '距离上次起飞',
-                style: TextStyle(
-                  fontSize: r.textLg,
-                  color: context.palette.textSecondary,
-                ),
-              ),
-              SizedBox(height: r.gapSm),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  display,
-                  style: TextStyle(
-                    fontSize: r.textDisplay,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.primary,
-                    letterSpacing: -2,
-                    fontFeatures: const [FontFeature.tabularFigures()],
-                  ),
-                ),
-              ),
-            ],
-          );
-        }),
-        const Spacer(),
-        // ── 底部:quote + 起飞提示,居中 ────────────────────
-        Column(
-          children: [
-            GestureDetector(
-              onTap: _nextQuote,
-              child: Obx(() {
-                final quotes = state.settings.value.quotes;
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 250),
-                  child: Text(
-                    quotes.isEmpty
-                        ? '每一次起飞都是一次冒险'
-                        : quotes[_quoteIndex % quotes.length],
-                    key: ValueKey(_quoteIndex),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: r.textBase,
-                      color: context.palette.textLight,
-                    ),
-                  ),
-                );
-              }),
-            ),
-            SizedBox(height: r.gapLg),
-            Text(
-              '双击屏幕起飞',
-              style: TextStyle(
-                fontSize: r.textLg,
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: r.gapLg),
-      ],
+        );
+      },
     );
   }
 }
@@ -408,6 +314,7 @@ class _ParticleLayer {
   final ValueKey<int> key;
   final String emoji;
   final Offset center;
+
   _ParticleLayer({
     required this.key,
     required this.emoji,
