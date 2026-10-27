@@ -1,13 +1,23 @@
-// This is a basic Flutter widget test for the flight attendance app.
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:flight_attendance_app/main.dart' as app;
+import 'package:flight_attendance_app/screens/main_dock.dart';
+import 'package:flight_attendance_app/theme/app_theme.dart';
 
 void main() {
-  testWidgets('App boots without throwing', (WidgetTester tester) async {
-    // We can't pump the full app here because it depends on platform
-    // channels (shared_preferences). Just smoke test that main() doesn't
-    // throw at the import level.
-    expect(app.main, isA<Function>());
+  testWidgets('主界面只保留三个纯本地 tab', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: Scaffold(
+          bottomNavigationBar: MainDock(index: 0, onChanged: (_) {}),
+        ),
+      ),
+    );
+
+    expect(find.text('首页'), findsOneWidget);
+    expect(find.text('记录'), findsOneWidget);
+    expect(find.text('我的'), findsOneWidget);
+    expect(find.text('排行'), findsNothing);
   });
 }

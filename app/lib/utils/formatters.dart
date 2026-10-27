@@ -5,7 +5,8 @@ class DateFormatters {
 
   static String timeHM(DateTime d) => DateFormat('HH:mm').format(d);
 
-  static String timeFull(DateTime d) => DateFormat('yyyy-MM-dd HH:mm:ss').format(d);
+  static String timeFull(DateTime d) =>
+      DateFormat('yyyy-MM-dd HH:mm:ss').format(d);
 
   static String timeLocal(DateTime d) =>
       DateFormat('yyyy-MM-dd HH:mm').format(d);
@@ -20,16 +21,16 @@ enum CountdownPrecision { second, minute, hour }
 
 extension CountdownPrecisionX on CountdownPrecision {
   String get label => switch (this) {
-        CountdownPrecision.second => '秒',
-        CountdownPrecision.minute => '分钟',
-        CountdownPrecision.hour => '小时',
-      };
+    CountdownPrecision.second => '秒',
+    CountdownPrecision.minute => '分钟',
+    CountdownPrecision.hour => '小时',
+  };
 
   String get displayName => switch (this) {
-        CountdownPrecision.second => '秒级',
-        CountdownPrecision.minute => '分钟级',
-        CountdownPrecision.hour => '小时级',
-      };
+    CountdownPrecision.second => '秒级',
+    CountdownPrecision.minute => '分钟级',
+    CountdownPrecision.hour => '小时级',
+  };
 
   static CountdownPrecision fromString(String? s) {
     return switch (s) {

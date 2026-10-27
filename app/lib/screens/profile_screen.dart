@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+import '../models/profile.dart';
+import '../services/record_file_service.dart';
 import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../utils/formatters.dart';
 import '../utils/responsive.dart';
 import '../widgets/picker_modals.dart';
-
-/// 项目仓库地址 —— 「关于」行点击后跳转
-const _kRepoUrl = 'https://github.com/Cle2333/flight-attendance-web';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -18,16 +16,13 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = Get.find<AppState>();
     final r = context.r;
+
     return SafeArea(
       bottom: false,
       child: Obx(() {
-        final user = state.currentUser.value;
-        final isLocal = state.isManualLocalMode.value;
-        final avatar = user?.avatar?.isNotEmpty == true ? user!.avatar! : '✈️';
-        final nickname = user?.nickname ?? '用户';
-        final id = isLocal
-            ? '本地模式'
-            : 'ID: USER-${(user?.id ?? 0).toString().padLeft(4, '0')}';
+        final profile = state.profile.value ?? const LocalProfile();
+        final avatar = profile.avatar;
+        final nickname = profile.nickname;
 
         return ListView(
           padding: EdgeInsets.only(bottom: r.gapLg),
@@ -50,10 +45,7 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   GestureDetector(
                     onTap: () => Get.dialog(
-                      AvatarPicker(
-                        current: avatar,
-                        onPick: (e) => state.updateAvatar(e),
-                      ),
+                      AvatarPicker(current: avatar, onPick: state.updateAvatar),
                     ),
                     child: Container(
                       width: r.avatarLg,
@@ -74,7 +66,10 @@ class ProfileScreen extends StatelessWidget {
                         ],
                       ),
                       alignment: Alignment.center,
-                      child: Text(avatar, style: TextStyle(fontSize: r.text2xl * 1.4)),
+                      child: Text(
+                        avatar,
+                        style: TextStyle(fontSize: r.text2xl * 1.4),
+                      ),
                     ),
                   ),
                   SizedBox(height: r.gapSm * 0.95),
@@ -95,7 +90,7 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   SizedBox(height: r.gapXs * 0.5),
                   Text(
-                    id,
+                    '全部数据仅保存在本机',
                     style: TextStyle(
                       fontSize: r.textSm,
                       color: context.palette.textSecondary,
@@ -122,7 +117,7 @@ class ProfileScreen extends StatelessWidget {
                   icon: '✏️',
                   color: context.palette.primaryBg,
                   title: '修改昵称',
-                  subtitle: '当前: $nickname',
+                  subtitle: '当前：$nickname',
                   onTap: () => Get.dialog(
                     NicknameEditor(
                       current: nickname,
@@ -136,10 +131,7 @@ class ProfileScreen extends StatelessWidget {
                   title: '更换头像',
                   subtitle: '选择喜欢的头像',
                   onTap: () => Get.dialog(
-                    AvatarPicker(
-                      current: avatar,
-                      onPick: state.updateAvatar,
-                    ),
+                    AvatarPicker(current: avatar, onPick: state.updateAvatar),
                   ),
                 ),
               ],
@@ -150,11 +142,13 @@ class ProfileScreen extends StatelessWidget {
                   icon: '⏱️',
                   color: context.palette.primaryBg,
                   title: '计时精度',
-                  subtitle: '当前: ${state.settings.value.precisionEnum.displayName}',
+                  subtitle:
+                      '当前：${state.settings.value.precisionEnum.displayName}',
                   onTap: () => Get.dialog(
                     PrecisionPicker(
                       current: state.settings.value.precisionEnum,
-                      onPick: (p) => state.updatePrecision(p.name),
+                      onPick: (precision) =>
+                          state.updatePrecision(precision.name),
                     ),
                   ),
                 ),
@@ -162,7 +156,7 @@ class ProfileScreen extends StatelessWidget {
                   icon: '🎆',
                   color: context.palette.infoBg,
                   title: '起飞特效',
-                  subtitle: '当前: ${state.settings.value.effectEmoji}',
+                  subtitle: '当前：${state.settings.value.effectEmoji}',
                   onTap: () => Get.dialog(
                     EffectEmojiPicker(
                       current: state.settings.value.effectEmoji,
@@ -187,69 +181,55 @@ class ProfileScreen extends StatelessWidget {
             _Group(
               children: [
                 _Row(
-                  icon: '🔄',
-                  color: context.palette.primaryBg,
-                  title: isLocal ? '切换到云端模式' : '切换到本地模式',
-                  subtitle: '当前: ${isLocal ? '本地模式' : '云端模式'}',
-                  onTap: () async {
-                    if (isLocal) {
-                      await state.logout();
-                    } else {
-                      await state.enterLocalMode();
-                    }
-                  },
+                  icon: '📥',
+                  color: context.palette.successBg,
+                  title: '导入打卡记录',
+                  subtitle: '支持 JSON 备份与 CSV 表格，重复记录自动跳过',
+                  onTap: () => _importRecords(state),
                 ),
                 _Row(
-                  icon: '🚪',
-                  color: context.palette.dangerBg,
-                  iconColor: AppColors.danger,
-                  title: '退出登录',
-                  subtitle: null,
-                  onTap: () async {
-                    final ok = await Get.dialog<bool>(
-                      AlertDialog(
-                        title: const Text('退出登录'),
-                        content: Text(isLocal
-                            ? '退出本地模式？本地数据将被清空。'
-                            : '确定要退出登录？'),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Get.back(result: false),
-                            child: const Text('取消'),
-                          ),
-                          FilledButton(
-                            style: FilledButton.styleFrom(
-                                backgroundColor: AppColors.danger),
-                            onPressed: () => Get.back(result: true),
-                            child: const Text('退出'),
-                          ),
-                        ],
-                      ),
-                    );
-                    if (ok == true) {
-                      await state.logout();
-                    }
-                  },
+                  icon: '📤',
+                  color: context.palette.primaryBg,
+                  title: '导出 JSON 备份',
+                  subtitle: '包含时间、感受和记录创建时间',
+                  onTap: () => _exportRecords(state, RecordExportFormat.json),
+                ),
+                _Row(
+                  icon: '📤',
+                  color: context.palette.infoBg,
+                  title: '导出 CSV 表格',
+                  subtitle: '可用 Excel、Numbers 等表格软件打开',
+                  onTap: () => _exportRecords(state, RecordExportFormat.csv),
+                ),
+                _Row(
+                  icon: '💾',
+                  color: context.palette.warningBg,
+                  title: '本地 SQLite 数据库',
+                  subtitle: '${state.totalRecords} 条记录 · 点击查看文件位置',
+                  onTap: () => Get.dialog(
+                    AlertDialog(
+                      title: const Text('本地数据位置'),
+                      content: SelectableText(state.database.location),
+                      actions: [
+                        TextButton(
+                          onPressed: Get.back,
+                          child: const Text('知道了'),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ),
-            // 外观 —— 主题模式切换
             _Group(
               children: [
                 Obx(() {
                   final mode = state.themeMode.value;
-                  String label;
-                  switch (mode) {
-                    case ThemeMode.light:
-                      label = '当前: 浅色';
-                      break;
-                    case ThemeMode.dark:
-                      label = '当前: 深色';
-                      break;
-                    case ThemeMode.system:
-                      label = '当前: 跟随系统';
-                      break;
-                  }
+                  final label = switch (mode) {
+                    ThemeMode.light => '当前：浅色',
+                    ThemeMode.dark => '当前：深色',
+                    ThemeMode.system => '当前：跟随系统',
+                  };
                   return _Row(
                     icon: mode == ThemeMode.dark ? '🌙' : '☀️',
                     color: context.palette.primaryBg,
@@ -258,9 +238,7 @@ class ProfileScreen extends StatelessWidget {
                     onTap: () async {
                       final picked = await Get.dialog<ThemeMode>(
                         AlertDialog(
-                          title: const Text('选择主题'),
-                          contentPadding: const EdgeInsets.symmetric(
-                              vertical: 16),
+                          title: const Text('外观主题'),
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -268,7 +246,7 @@ class ProfileScreen extends StatelessWidget {
                                 mode: ThemeMode.system,
                                 current: mode,
                                 label: '跟随系统',
-                                icon: '📱',
+                                icon: '⚙️',
                               ),
                               _ThemeOption(
                                 mode: ThemeMode.light,
@@ -286,52 +264,81 @@ class ProfileScreen extends StatelessWidget {
                           ),
                         ),
                       );
-                      if (picked != null) {
-                        state.setThemeMode(picked);
-                      }
+                      if (picked != null) await state.setThemeMode(picked);
                     },
                   );
                 }),
               ],
             ),
-
-            // ── 关于本应用 —— 跳转 GitHub 仓库 ───────
-            _Group(
-              children: [
-                _Row(
-                  icon: 'ℹ️',
-                  color: context.palette.primaryBg,
-                  title: '关于本应用',
-                  subtitle: 'github.com/Cle2333/flight-attendance-web',
-                  onTap: () => _openRepo(context),
+            Padding(
+              padding: r.padFromLTRB(1.6, 0.6, 1.6, 0),
+              child: Text(
+                '航班打卡 · 纯本地版\n不上传、不登录、不联网',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: r.textXs,
+                  color: context.palette.textLight,
+                  height: 1.6,
                 ),
-              ],
+              ),
             ),
           ],
         );
       }),
     );
   }
-}
 
-/// 调起系统浏览器打开项目仓库 —— 打开不了则用 snackbar 提示手动访问
-Future<void> _openRepo(BuildContext context) async {
-  final uri = Uri.parse(_kRepoUrl);
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
-  } else {
-    Get.snackbar(
-      '无法打开浏览器',
-      '请手动访问: $_kRepoUrl',
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 4),
-    );
+  Future<void> _importRecords(AppState state) async {
+    try {
+      final picked = await state.fileService.pickImportFile();
+      if (picked == null) return;
+      final confirmed = await Get.dialog<bool>(
+        AlertDialog(
+          title: const Text('确认导入'),
+          content: Text(
+            '文件：${picked.name}\n'
+            '读取到 ${picked.records.length} 条记录。\n'
+            '导入时按“起飞时间 + 感受”去重，不会覆盖已有记录。',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(result: false),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () => Get.back(result: true),
+              child: const Text('开始导入'),
+            ),
+          ],
+        ),
+      );
+      if (confirmed != true) return;
+      final summary = await state.importRecords(picked.records);
+      Get.snackbar(
+        '导入完成',
+        '新增 ${summary.added} 条，跳过重复 ${summary.skipped} 条',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } catch (error) {
+      Get.snackbar('导入失败', '$error', snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
+  Future<void> _exportRecords(AppState state, RecordExportFormat format) async {
+    try {
+      final path = await state.fileService.exportRecords(state.records, format);
+      if (path == null) return;
+      Get.snackbar('导出完成', path, snackPosition: SnackPosition.BOTTOM);
+    } catch (error) {
+      Get.snackbar('导出失败', '$error', snackPosition: SnackPosition.BOTTOM);
+    }
   }
 }
 
 class _ProfileStat extends StatelessWidget {
   final String n;
   final String l;
+
   const _ProfileStat({required this.n, required this.l});
 
   @override
@@ -342,9 +349,9 @@ class _ProfileStat extends StatelessWidget {
         Text(
           n,
           style: TextStyle(
-            fontSize: r.text2xl * 0.95,
-            fontWeight: FontWeight.w700,
-            color: AppColors.primary,
+            fontSize: r.textLg,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -1,
           ),
         ),
         SizedBox(height: r.gap2xs),
@@ -362,6 +369,7 @@ class _ProfileStat extends StatelessWidget {
 
 class _Group extends StatelessWidget {
   final List<Widget> children;
+
   const _Group({required this.children});
 
   @override
@@ -382,14 +390,15 @@ class _Group extends StatelessWidget {
       ),
       child: Column(
         children: [
-          for (int i = 0; i < children.length; i++) ...[
+          for (var i = 0; i < children.length; i++) ...[
             children[i],
             if (i < children.length - 1)
               Divider(
-                  height: 1,
-                  color: context.palette.border,
-                  indent: r.gapMd,
-                  endIndent: r.gapMd),
+                height: 1,
+                color: context.palette.border,
+                indent: r.gapMd,
+                endIndent: r.gapMd,
+              ),
           ],
         ],
       ),
@@ -402,6 +411,7 @@ class _ThemeOption extends StatelessWidget {
   final ThemeMode current;
   final String label;
   final String icon;
+
   const _ThemeOption({
     required this.mode,
     required this.current,
@@ -415,7 +425,7 @@ class _ThemeOption extends StatelessWidget {
     final isSelected = mode == current;
     return InkWell(
       onTap: () => Get.back(result: mode),
-      child: Container(
+      child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         child: Row(
           children: [
@@ -444,7 +454,6 @@ class _Row extends StatelessWidget {
   final Color color;
   final String title;
   final String? subtitle;
-  final Color? iconColor;
   final VoidCallback onTap;
 
   const _Row({
@@ -453,7 +462,6 @@ class _Row extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
-    this.iconColor,
   });
 
   @override
@@ -475,34 +483,40 @@ class _Row extends StatelessWidget {
                   borderRadius: BorderRadius.circular(r.radiusSm * 0.85),
                 ),
                 alignment: Alignment.center,
-                child: Text(icon,
-                    style: TextStyle(
-                      fontSize: r.textMd,
-                      color: iconColor,
-                    )),
+                child: Text(icon, style: TextStyle(fontSize: r.textMd)),
               ),
               SizedBox(width: r.gapSm * 0.95),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title,
-                        style: TextStyle(
-                          fontSize: r.textMd,
-                          fontWeight: FontWeight.w500,
-                        )),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: r.textMd,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                     if (subtitle != null) ...[
                       SizedBox(height: r.gap2xs),
-                      Text(subtitle!,
-                          style: TextStyle(
-                            fontSize: r.textXs,
-                            color: context.palette.textSecondary,
-                          )),
+                      Text(
+                        subtitle!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: r.textXs,
+                          color: context.palette.textSecondary,
+                        ),
+                      ),
                     ],
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, size: r.iconMd, color: context.palette.textLight),
+              Icon(
+                Icons.chevron_right,
+                size: r.iconMd,
+                color: context.palette.textLight,
+              ),
             ],
           ),
         ),

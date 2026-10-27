@@ -1,61 +1,75 @@
-/// 一次"起飞"打卡
+/// 一条本地起飞打卡记录。
+///
+/// 记录只存在于本机 SQLite，不再包含用户 ID、服务器 ID 或同步状态。
 class FlightRecord {
   final int id;
-  final int userId;
   final DateTime time;
   final String note;
   final DateTime? createdAt;
 
-  /// 云端 id —— null 表示这条记录还没同步到服务器
-  /// (本地模式创建，或者云端模式刚起飞但 POST 还没返回)。
-  /// 有值时就用这个 id 去 PUT/DELETE 服务器，不要用 [id]。
-  final int? serverId;
-
   const FlightRecord({
     required this.id,
-    required this.userId,
     required this.time,
     this.note = '',
     this.createdAt,
-    this.serverId,
   });
 
-  FlightRecord copyWith({
-    int? id,
-    int? userId,
-    DateTime? time,
-    String? note,
-    DateTime? createdAt,
-    int? serverId,
-  }) {
+  factory FlightRecord.fromDatabaseRow(Map<String, Object?> row) {
     return FlightRecord(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      time: time ?? this.time,
-      note: note ?? this.note,
-      createdAt: createdAt ?? this.createdAt,
-      serverId: serverId ?? this.serverId,
+      id: (row['id'] as num).toInt(),
+      time: DateTime.parse(row['event_time'] as String).toLocal(),
+      note: row['note'] as String? ?? '',
+      createdAt: row['created_at'] == null
+          ? null
+          : DateTime.parse(row['created_at'] as String).toLocal(),
     );
   }
 
-  factory FlightRecord.fromJson(Map<String, dynamic> json) => FlightRecord(
-        id: (json['id'] as num?)?.toInt() ?? 0,
-        userId: (json['user_id'] as num?)?.toInt() ?? 0,
-        time: DateTime.parse(json['time'] as String).toLocal(),
-        note: json['note'] as String? ?? '',
-        createdAt: json['created_at'] != null
-            ? DateTime.parse(json['created_at'] as String).toLocal()
-            : null,
-        // 服务器数据本身就有真实 id，serverId == id
-        serverId: (json['id'] as num?)?.toInt(),
-      );
+  factory FlightRecord.fromTransferJson(Map<String, dynamic> json) {
+    final rawTime = json['time'] ?? json['event_time'];
+    if (rawTime is! String || rawTime.isEmpty) {
+      throw const FormatException('记录缺少有效的时间字段');
+    }
+    final parsedTime = DateTime.tryParse(rawTime);
+    if (parsedTime == null) {
+      throw FormatException('无法解析记录时间：$rawTime');
+    }
+    final rawCreatedAt = json['created_at'];
+    return FlightRecord(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      time: parsedTime.toLocal(),
+      note: json['note'] as String? ?? '',
+      createdAt: rawCreatedAt is String
+          ? DateTime.tryParse(rawCreatedAt)?.toLocal()
+          : null,
+    );
+  }
 
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'user_id': userId,
-        'time': time.toUtc().toIso8601String(),
-        'note': note,
-        if (createdAt != null) 'created_at': createdAt!.toUtc().toIso8601String(),
-        if (serverId != null) 'server_id': serverId,
-      };
+  Map<String, Object?> toDatabase() => {
+    'event_time': time.toUtc().toIso8601String(),
+    'note': note,
+    'created_at': (createdAt ?? DateTime.now()).toUtc().toIso8601String(),
+  };
+
+  Map<String, dynamic> toTransferJson() => {
+    'time': time.toUtc().toIso8601String(),
+    'note': note,
+    if (createdAt != null) 'created_at': createdAt!.toUtc().toIso8601String(),
+  };
+
+  String get fingerprint => '${time.toUtc().toIso8601String()}\u0000$note';
+
+  FlightRecord copyWith({
+    int? id,
+    DateTime? time,
+    String? note,
+    DateTime? createdAt,
+  }) {
+    return FlightRecord(
+      id: id ?? this.id,
+      time: time ?? this.time,
+      note: note ?? this.note,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }

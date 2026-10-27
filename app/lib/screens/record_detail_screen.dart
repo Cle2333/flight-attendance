@@ -16,19 +16,22 @@ class RecordDetailScreen extends StatelessWidget {
     final state = Get.find<AppState>();
     final r = context.r;
     return Scaffold(
-      appBar: AppBar(
-        leading: const BackButton(),
-        title: const Text('起飞详情'),
-      ),
+      appBar: AppBar(leading: const BackButton(), title: const Text('起飞详情')),
       body: CenteredFrame(
         maxWidth: r.contentMaxWidth,
         child: Obx(() {
-          final r0 = state.records.firstWhere(
-            (e) => e.id == recordId,
-            orElse: () => state.records.isNotEmpty
-                ? state.records.first
-                : (throw StateError('记录不存在')),
+          final matches = state.records.where(
+            (record) => record.id == recordId,
           );
+          if (matches.isEmpty) {
+            return Center(
+              child: Text(
+                '记录不存在或已删除',
+                style: TextStyle(color: context.palette.textSecondary),
+              ),
+            );
+          }
+          final r0 = matches.first;
           final t = r0.time;
 
           return ListView(
@@ -100,8 +103,8 @@ class RecordDetailScreen extends StatelessWidget {
                         await Get.dialog(
                           EditRecordModal(
                             record: r0,
-                            onSave: (newTime) => state.updateRecord(
-                                r0.id, newTime, r0.note),
+                            onSave: (newTime, note) =>
+                                state.updateRecord(r0.id, newTime, note),
                           ),
                         );
                       },
@@ -123,23 +126,29 @@ class RecordDetailScreen extends StatelessWidget {
                               ),
                               FilledButton(
                                 style: FilledButton.styleFrom(
-                                    backgroundColor: AppColors.danger),
+                                  backgroundColor: AppColors.danger,
+                                ),
                                 onPressed: () => Get.back(result: true),
                                 child: const Text('删除'),
                               ),
                             ],
                           ),
                         );
-                        if (confirm == true) {
+                        if (confirm != true) return;
+                        try {
                           await state.deleteRecord(r0.id);
-                          if (Get.isOverlaysOpen == false &&
-                              Get.currentRoute == '/RecordDetailScreen') {
-                            Get.back();
-                          }
+                          Get.back();
+                        } catch (error) {
+                          Get.snackbar(
+                            '删除失败',
+                            '$error',
+                            snackPosition: SnackPosition.BOTTOM,
+                          );
                         }
                       },
                       style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.danger),
+                        backgroundColor: AppColors.danger,
+                      ),
                       child: const Text('删除'),
                     ),
                   ),
@@ -179,7 +188,10 @@ class _DetailRow extends StatelessWidget {
             child: Text(
               value,
               textAlign: TextAlign.right,
-              style: TextStyle(fontSize: r.textBase, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                fontSize: r.textBase,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

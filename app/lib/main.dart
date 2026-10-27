@@ -1,10 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'api/api_client.dart';
 import 'app.dart';
+import 'data/app_database.dart';
+import 'data/database_factory.dart';
+import 'data/legacy_migration.dart';
 import 'state/app_state.dart';
-import 'storage/local_store.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,19 +17,51 @@ Future<void> main() async {
       statusBarIconBrightness: Brightness.dark,
     ),
   );
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-  final store = await LocalStore.create();
-  final api = ApiClient(store);
-  final state = AppState(store: store, api: api);
+  try {
+    await initializeDatabaseFactory();
+    final database = await AppDatabase.open();
+    await LegacyMigration.run(database);
+    final state = AppState(database: database);
+    runApp(FlightAttendanceApp(appState: state));
+    unawaited(state.bootstrap());
+  } catch (error) {
+    runApp(_StartupFailureApp(message: '本地数据初始化失败：$error'));
+  }
+}
 
-  // **离线优先**：先 runApp 让 UI 立刻可见，bootstrap 在后台跑。
-  // 这样即便 server 挂了、token 失效、要 8 秒超时，App 也能立刻用本地缓存渲染。
-  runApp(FlightAttendanceApp(appState: state));
+class _StartupFailureApp extends StatelessWidget {
+  final String message;
 
-  // fire-and-forget —— AppState.bootstrap 内部所有失败都不会冒出来
-  // ignore: discarded_futures
-  state.bootstrap();
+  const _StartupFailureApp({required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('✈️', style: TextStyle(fontSize: 48)),
+                  const SizedBox(height: 16),
+                  const Text(
+                    '航班打卡无法启动',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(message, textAlign: TextAlign.center),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

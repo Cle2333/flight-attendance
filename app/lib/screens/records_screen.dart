@@ -7,7 +7,9 @@ import '../state/controllers/records_controller.dart';
 import '../theme/app_theme.dart';
 import '../utils/formatters.dart';
 import '../utils/responsive.dart';
+import '../widgets/achievement_grid.dart';
 import '../widgets/calendar_widget.dart';
+import '../widgets/monthly_report_card.dart';
 import '../widgets/stats_grid.dart';
 import 'record_detail_screen.dart';
 
@@ -29,16 +31,21 @@ class RecordsScreen extends StatelessWidget {
             padding: r.padFromLTRB(1.4, 1.0, 1.4, 0.8),
             child: Text(
               '✈️ 航班记录',
-              style: TextStyle(fontSize: r.text2xl, fontWeight: FontWeight.w800),
+              style: TextStyle(
+                fontSize: r.text2xl,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
-          Obx(() => CalendarWidget(
-                currentDate: ctrl.calDate.value,
-                onMonthChanged: ctrl.shiftMonth,
-                hasRecordOn: state.hasRecordOn,
-                onDateTapped: ctrl.navigateToDay,
-                expandedNotifier: ctrl.calendarExpanded,
-              )),
+          Obx(
+            () => CalendarWidget(
+              currentDate: ctrl.calDate.value,
+              onMonthChanged: ctrl.shiftMonth,
+              hasRecordOn: state.hasRecordOn,
+              onDateTapped: ctrl.navigateToDay,
+              expandedNotifier: ctrl.calendarExpanded,
+            ),
+          ),
           SizedBox(height: r.gapMd),
           Padding(
             padding: r.padFromLTRB(1.4, 0.4, 1.4, 0.6),
@@ -57,11 +64,9 @@ class RecordsScreen extends StatelessWidget {
             // 先读 — 让 GetX 追到
             final total = state.totalRecords;
             final streak = state.currentStreak;
-            final avg = state.averageTakeoffHour;
+            final avg = state.averageTakeoffTime;
             final badges = state.badges;
-            final avgText = avg == null
-                ? '--:--'
-                : '${avg.toString().padLeft(2, '0')}:00';
+            final avgText = avg?.label ?? '--:--';
 
             return Padding(
               padding: r.padH(1.4),
@@ -117,47 +122,57 @@ class RecordsScreen extends StatelessWidget {
               ),
             );
           }),
+          SizedBox(height: r.gapMd),
+          Obx(
+            () => MonthlyReportCard(
+              report: state.monthlyReport(ctrl.calDate.value),
+            ),
+          ),
+          SizedBox(height: r.gapMd),
+          Obx(() => AchievementGrid(achievements: state.achievements)),
           SizedBox(height: r.gapXs),
           GestureDetector(
             onTap: ctrl.toggleDetail,
             behavior: HitTestBehavior.opaque,
-            child: Obx(() => Container(
-                  margin: r.padHV(1.4, 0.8),
-                  padding: r.padHV(1.0, 1.0),
-                  decoration: BoxDecoration(
-                    color: context.palette.card,
-                    borderRadius: BorderRadius.circular(r.radiusLg),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 8,
-                        offset: const Offset(0, 1),
+            child: Obx(
+              () => Container(
+                margin: r.padHV(1.4, 0.8),
+                padding: r.padHV(1.0, 1.0),
+                decoration: BoxDecoration(
+                  color: context.palette.card,
+                  borderRadius: BorderRadius.circular(r.radiusLg),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 1),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '查看起飞记录',
+                      style: TextStyle(
+                        fontSize: r.textMd,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        '查看起飞记录',
-                        style: TextStyle(
-                          fontSize: r.textMd,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.primary,
-                        ),
+                    ),
+                    AnimatedRotation(
+                      duration: const Duration(milliseconds: 300),
+                      turns: ctrl.detailOpen.value ? 0.25 : 0,
+                      child: Icon(
+                        Icons.chevron_right,
+                        size: r.iconMd,
+                        color: AppColors.primary,
                       ),
-                      AnimatedRotation(
-                        duration: const Duration(milliseconds: 300),
-                        turns: ctrl.detailOpen.value ? 0.25 : 0,
-                        child: Icon(
-                          Icons.chevron_right,
-                          size: r.iconMd,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                )),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
           Obx(() {
             final records = state.records;
@@ -176,13 +191,14 @@ class RecordsScreen extends StatelessWidget {
                               child: Center(
                                 child: Text(
                                   '暂无记录',
-                                  style: TextStyle(color: context.palette.textLight),
+                                  style: TextStyle(
+                                    color: context.palette.textLight,
+                                  ),
                                 ),
                               ),
                             )
                           : Column(
-                              children:
-                                  grouped.entries.expand((entry) {
+                              children: grouped.entries.expand((entry) {
                                 final recs = entry.value;
                                 return [
                                   Padding(
@@ -201,7 +217,9 @@ class RecordsScreen extends StatelessWidget {
                                     final i = e.key;
                                     final rec = e.value;
                                     return Padding(
-                                      padding: EdgeInsets.only(bottom: r.gapSm * 0.8),
+                                      padding: EdgeInsets.only(
+                                        bottom: r.gapSm * 0.8,
+                                      ),
                                       child: _RecordItem(
                                         record: rec,
                                         indexInDay: recs.length - i,

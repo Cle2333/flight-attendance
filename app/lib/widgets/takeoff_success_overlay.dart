@@ -43,8 +43,10 @@ class _TakeoffSuccessOverlayState extends State<TakeoffSuccessOverlay>
       duration: const Duration(milliseconds: 500),
     );
     _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeOut);
-    _slide = Tween<Offset>(begin: const Offset(0, 0.2), end: Offset.zero)
-        .animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
+    _slide = Tween<Offset>(
+      begin: const Offset(0, 0.2),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeOut));
     _ctrl.forward();
   }
 
@@ -68,7 +70,7 @@ class _TakeoffSuccessOverlayState extends State<TakeoffSuccessOverlay>
           controller: ctrl,
           autofocus: true,
           maxLength: 50,
-          decoration: const InputDecoration(hintText: '例如：飞向云端'),
+          decoration: const InputDecoration(hintText: '例如：今天状态很好'),
         ),
         actions: [
           TextButton(
@@ -99,10 +101,7 @@ class _TakeoffSuccessOverlayState extends State<TakeoffSuccessOverlay>
           child: SafeArea(
             child: CenteredFrame(
               maxWidth: r.contentMaxWidth,
-              child: SlideTransition(
-                position: _slide,
-                child: _buildContent(r),
-              ),
+              child: SlideTransition(position: _slide, child: _buildContent(r)),
             ),
           ),
         ),
@@ -141,10 +140,7 @@ class _TakeoffSuccessOverlayState extends State<TakeoffSuccessOverlay>
         SizedBox(height: r.gapXs),
         Text(
           DateFormatters.timeHM(widget.time),
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: r.textLg,
-          ),
+          style: TextStyle(color: Colors.white, fontSize: r.textLg),
         ),
         const Spacer(),
         // grid 限宽,按 cellAspectRatio 自然计算高度,
@@ -228,7 +224,9 @@ class _FeelingButton extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(r.radiusMd),
             border: Border.all(
-              color: selected ? Colors.white : Colors.white.withValues(alpha: 0.4),
+              color: selected
+                  ? Colors.white
+                  : Colors.white.withValues(alpha: 0.4),
               width: 2,
             ),
           ),

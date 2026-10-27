@@ -222,7 +222,7 @@ class CalendarWidget extends StatelessWidget {
     final daysInMonth = DateTime(year, month + 1, 0).day;
     final today = DateTime.now();
     final labels = ['一', '二', '三', '四', '五', '六', '日'];
-    final cellSize = r.gapLg * 2.0;  // 日历单元格高度
+    final cellSize = r.gapLg * 2.0; // 日历单元格高度
 
     return Column(
       children: [
@@ -278,8 +278,12 @@ class CalendarWidget extends StatelessWidget {
                             '$day',
                             style: TextStyle(
                               fontSize: r.textSm,
-                              fontWeight: isToday ? FontWeight.w600 : FontWeight.w400,
-                              color: isToday ? Colors.white : context.palette.text,
+                              fontWeight: isToday
+                                  ? FontWeight.w600
+                                  : FontWeight.w400,
+                              color: isToday
+                                  ? Colors.white
+                                  : context.palette.text,
                             ),
                           ),
                         ),
@@ -291,7 +295,9 @@ class CalendarWidget extends StatelessWidget {
                               height: r.dotSm,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: isToday ? Colors.white : AppColors.primary,
+                                color: isToday
+                                    ? Colors.white
+                                    : AppColors.primary,
                               ),
                             ),
                           ),

@@ -44,9 +44,7 @@ class RecordsController extends GetxController {
 
   /// 跳到指定日期的记录详情(如果有)。
   void navigateToDay(DateTime d) {
-    final list = _state.records
-        .where((r) => isSameDay(r.time, d))
-        .toList()
+    final list = _state.records.where((r) => isSameDay(r.time, d)).toList()
       ..sort((a, b) => b.time.compareTo(a.time));
     if (list.isEmpty) return;
     Get.to(() => RecordDetailScreen(recordId: list.first.id));

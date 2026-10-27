@@ -32,16 +32,17 @@ class _ParticleBurstState extends State<ParticleBurst>
   void initState() {
     super.initState();
     _particles = List.generate(widget.count, (_) => _Particle(_rand));
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )
-      ..addStatusListener((s) {
-        if (s == AnimationStatus.completed) {
-          widget.onComplete?.call();
-        }
-      })
-      ..forward();
+    _controller =
+        AnimationController(
+            vsync: this,
+            duration: const Duration(milliseconds: 1200),
+          )
+          ..addStatusListener((s) {
+            if (s == AnimationStatus.completed) {
+              widget.onComplete?.call();
+            }
+          })
+          ..forward();
   }
 
   @override
@@ -52,7 +53,7 @@ class _ParticleBurstState extends State<ParticleBurst>
 
   @override
   Widget build(BuildContext context) {
-    final fontSize = context.r.iconXl * 1.05;  // 粒子 emoji 大小跟屏幕走
+    final fontSize = context.r.iconXl * 1.05; // 粒子 emoji 大小跟屏幕走
     return IgnorePointer(
       child: AnimatedBuilder(
         animation: _controller,
@@ -78,11 +79,11 @@ class _Particle {
   final double rotation;
   final double rotationSpeed;
   _Particle(Random r)
-      : angle = r.nextDouble() * 2 * pi,
-        velocity = 100 + r.nextDouble() * 200,
-        scale = 0.6 + r.nextDouble() * 0.8,
-        rotation = r.nextDouble() * 2 * pi,
-        rotationSpeed = (r.nextDouble() - 0.5) * 6;
+    : angle = r.nextDouble() * 2 * pi,
+      velocity = 100 + r.nextDouble() * 200,
+      scale = 0.6 + r.nextDouble() * 0.8,
+      rotation = r.nextDouble() * 2 * pi,
+      rotationSpeed = (r.nextDouble() - 0.5) * 6;
 }
 
 class _ParticlePainter extends CustomPainter {
@@ -103,7 +104,10 @@ class _ParticlePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final tp = TextPainter(
-      text: TextSpan(text: emoji, style: TextStyle(fontSize: fontSize)),
+      text: TextSpan(
+        text: emoji,
+        style: TextStyle(fontSize: fontSize),
+      ),
       textDirection: TextDirection.ltr,
     )..layout();
 

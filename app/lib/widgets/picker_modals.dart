@@ -11,8 +11,22 @@ class AvatarPicker extends StatefulWidget {
   const AvatarPicker({super.key, required this.current, required this.onPick});
 
   static const _emojis = [
-    '✈️', '🚀', '🌟', '🎉', '💫', '🔥', '⚡', '🎯',
-    '🦅', '🕊️', '🛸', '🎈', '🌈', '☀️', '🌙', '⭐',
+    '✈️',
+    '🚀',
+    '🌟',
+    '🎉',
+    '💫',
+    '🔥',
+    '⚡',
+    '🎯',
+    '🦅',
+    '🕊️',
+    '🛸',
+    '🎈',
+    '🌈',
+    '☀️',
+    '🌙',
+    '⭐',
   ];
 
   @override
@@ -26,7 +40,9 @@ class _AvatarPickerState extends State<AvatarPicker> {
   Widget build(BuildContext context) {
     final r = context.r;
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(r.radiusLg)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(r.radiusLg),
+      ),
       backgroundColor: context.palette.card,
       // 限制最大宽 + childAspectRatio:1.5，避免桌面端 GridView
       // 把格子拉成正方大块撑爆对话框
@@ -40,7 +56,10 @@ class _AvatarPickerState extends State<AvatarPicker> {
             children: [
               Text(
                 '选择头像',
-                style: TextStyle(fontSize: r.textLg, fontWeight: FontWeight.w700),
+                style: TextStyle(
+                  fontSize: r.textLg,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               SizedBox(height: r.gapMd),
               GridView.count(
@@ -57,15 +76,22 @@ class _AvatarPickerState extends State<AvatarPicker> {
                     borderRadius: BorderRadius.circular(r.radiusSm),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isSelected ? context.palette.primaryBg : context.palette.card,
+                        color: isSelected
+                            ? context.palette.primaryBg
+                            : context.palette.card,
                         border: Border.all(
-                          color: isSelected ? AppColors.primary : context.palette.border,
+                          color: isSelected
+                              ? AppColors.primary
+                              : context.palette.border,
                           width: 2,
                         ),
                         borderRadius: BorderRadius.circular(r.radiusSm),
                       ),
                       alignment: Alignment.center,
-                      child: Text(e, style: TextStyle(fontSize: r.text2xl * 1.3)),
+                      child: Text(
+                        e,
+                        style: TextStyle(fontSize: r.text2xl * 1.3),
+                      ),
                     ),
                   );
                 }).toList(),
@@ -103,7 +129,11 @@ class _AvatarPickerState extends State<AvatarPicker> {
 class EffectEmojiPicker extends StatefulWidget {
   final String current;
   final ValueChanged<String> onPick;
-  const EffectEmojiPicker({super.key, required this.current, required this.onPick});
+  const EffectEmojiPicker({
+    super.key,
+    required this.current,
+    required this.onPick,
+  });
 
   static const _emojis = ['✈️', '🚀', '🌟', '🎉', '💫', '🔥', '⚡', '🎯'];
 
@@ -118,7 +148,9 @@ class _EffectEmojiPickerState extends State<EffectEmojiPicker> {
   Widget build(BuildContext context) {
     final r = context.r;
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(r.radiusLg)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(r.radiusLg),
+      ),
       backgroundColor: context.palette.card,
       // 限制最大宽 + childAspectRatio:1.5，避免桌面端 GridView
       // 把格子拉成正方大块撑爆对话框
@@ -132,7 +164,10 @@ class _EffectEmojiPickerState extends State<EffectEmojiPicker> {
             children: [
               Text(
                 '起飞特效 Emoji',
-                style: TextStyle(fontSize: r.textLg, fontWeight: FontWeight.w700),
+                style: TextStyle(
+                  fontSize: r.textLg,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               SizedBox(height: r.gapMd),
               GridView.count(
@@ -149,15 +184,22 @@ class _EffectEmojiPickerState extends State<EffectEmojiPicker> {
                     borderRadius: BorderRadius.circular(r.radiusSm),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isSelected ? context.palette.primaryBg : context.palette.card,
+                        color: isSelected
+                            ? context.palette.primaryBg
+                            : context.palette.card,
                         border: Border.all(
-                          color: isSelected ? AppColors.primary : context.palette.border,
+                          color: isSelected
+                              ? AppColors.primary
+                              : context.palette.border,
                           width: 2,
                         ),
                         borderRadius: BorderRadius.circular(r.radiusSm),
                       ),
                       alignment: Alignment.center,
-                      child: Text(e, style: TextStyle(fontSize: r.text2xl * 1.3)),
+                      child: Text(
+                        e,
+                        style: TextStyle(fontSize: r.text2xl * 1.3),
+                      ),
                     ),
                   );
                 }).toList(),
@@ -195,7 +237,11 @@ class _EffectEmojiPickerState extends State<EffectEmojiPicker> {
 class PrecisionPicker extends StatefulWidget {
   final CountdownPrecision current;
   final ValueChanged<CountdownPrecision> onPick;
-  const PrecisionPicker({super.key, required this.current, required this.onPick});
+  const PrecisionPicker({
+    super.key,
+    required this.current,
+    required this.onPick,
+  });
 
   @override
   State<PrecisionPicker> createState() => _PrecisionPickerState();
@@ -208,7 +254,9 @@ class _PrecisionPickerState extends State<PrecisionPicker> {
   Widget build(BuildContext context) {
     final r = context.r;
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(r.radiusLg)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(r.radiusLg),
+      ),
       backgroundColor: context.palette.card,
       child: Padding(
         padding: r.padAll(1.25),
@@ -228,12 +276,14 @@ class _PrecisionPickerState extends State<PrecisionPicker> {
               },
               child: Column(
                 children: CountdownPrecision.values
-                    .map((p) => RadioListTile<CountdownPrecision>(
-                          value: p,
-                          title: Text(p.displayName),
-                          activeColor: AppColors.primary,
-                          contentPadding: EdgeInsets.zero,
-                        ))
+                    .map(
+                      (p) => RadioListTile<CountdownPrecision>(
+                        value: p,
+                        title: Text(p.displayName),
+                        activeColor: AppColors.primary,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    )
                     .toList(),
               ),
             ),
@@ -269,14 +319,20 @@ class _PrecisionPickerState extends State<PrecisionPicker> {
 class NicknameEditor extends StatefulWidget {
   final String current;
   final ValueChanged<String> onSave;
-  const NicknameEditor({super.key, required this.current, required this.onSave});
+  const NicknameEditor({
+    super.key,
+    required this.current,
+    required this.onSave,
+  });
 
   @override
   State<NicknameEditor> createState() => _NicknameEditorState();
 }
 
 class _NicknameEditorState extends State<NicknameEditor> {
-  late final TextEditingController _ctrl = TextEditingController(text: widget.current);
+  late final TextEditingController _ctrl = TextEditingController(
+    text: widget.current,
+  );
 
   @override
   void dispose() {
@@ -288,7 +344,9 @@ class _NicknameEditorState extends State<NicknameEditor> {
   Widget build(BuildContext context) {
     final r = context.r;
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(r.radiusLg)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(r.radiusLg),
+      ),
       backgroundColor: context.palette.card,
       child: Padding(
         padding: r.padAll(1.25),
@@ -381,7 +439,9 @@ class _QuotesEditorState extends State<QuotesEditor> {
   Widget build(BuildContext context) {
     final r = context.r;
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(r.radiusLg)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(r.radiusLg),
+      ),
       backgroundColor: context.palette.card,
       child: Padding(
         padding: r.padAll(1.25),
@@ -406,14 +466,19 @@ class _QuotesEditorState extends State<QuotesEditor> {
                           Expanded(
                             child: TextField(
                               controller: _ctrls[i],
-                              decoration: const InputDecoration(hintText: '一条语录'),
+                              decoration: const InputDecoration(
+                                hintText: '一条语录',
+                              ),
                             ),
                           ),
                           SizedBox(width: r.gapXs),
                           IconButton(
                             onPressed: () => _remove(i),
-                            icon: Icon(Icons.delete_outline,
-                                color: AppColors.danger, size: r.iconMd),
+                            icon: Icon(
+                              Icons.delete_outline,
+                              color: AppColors.danger,
+                              size: r.iconMd,
+                            ),
                           ),
                         ],
                       ),
@@ -445,84 +510,6 @@ class _QuotesEditorState extends State<QuotesEditor> {
                           .where((s) => s.isNotEmpty)
                           .toList();
                       widget.onSave(list);
-                      Navigator.pop(context);
-                    },
-                    child: const Text('保存'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// 后端地址配置
-class ServerConfigModal extends StatefulWidget {
-  final String current;
-  final ValueChanged<String> onSave;
-  const ServerConfigModal({super.key, required this.current, required this.onSave});
-
-  @override
-  State<ServerConfigModal> createState() => _ServerConfigModalState();
-}
-
-class _ServerConfigModalState extends State<ServerConfigModal> {
-  late final TextEditingController _ctrl = TextEditingController(text: widget.current);
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final r = context.r;
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(r.radiusLg)),
-      backgroundColor: context.palette.card,
-      child: Padding(
-        padding: r.padAll(1.25),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              '服务器地址',
-              style: TextStyle(fontSize: r.textLg, fontWeight: FontWeight.w700),
-            ),
-            SizedBox(height: r.gapXs),
-            Text(
-              '默认 https://flight.cmach.qzz.io',
-              style: TextStyle(fontSize: r.textXs, color: context.palette.textSecondary),
-            ),
-            SizedBox(height: r.gapSm),
-            TextField(
-              controller: _ctrl,
-              keyboardType: TextInputType.url,
-              decoration: const InputDecoration(
-                hintText: 'https://flight.cmach.qzz.io',
-              ),
-            ),
-            SizedBox(height: r.gapMd),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('取消'),
-                  ),
-                ),
-                SizedBox(width: r.gapSm),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () {
-                      final v = _ctrl.text.trim();
-                      if (v.isEmpty) return;
-                      widget.onSave(v);
                       Navigator.pop(context);
                     },
                     child: const Text('保存'),

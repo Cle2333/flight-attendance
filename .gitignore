@@ -1,7 +1,23 @@
 node_modules/
-server/data/
 *.log
 .env
 .DS_Store
 Thumbs.db
-build
+build/
+
+# Flutter / Dart
+.dart_tool/
+.flutter-plugins-dependencies
+**/build/
+**/coverage/
+*.symbols
+
+# 本地数据库与导出文件
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+航班打卡-*.json
+航班打卡-*.csv

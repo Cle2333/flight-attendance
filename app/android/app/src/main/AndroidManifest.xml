@@ -1,13 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- release 包要联网必须显式声明（debug/profile 自带，这里 release 用 main 合并） -->
-    <uses-permission android:name="android.permission.INTERNET"/>
-
     <application
-        android:label="flight_attendance_app"
+        android:label="航班打卡"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
-        android:usesCleartextTraffic="true"
-        android:networkSecurityConfig="@xml/network_security_config">
+        android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"
             android:exported="true"

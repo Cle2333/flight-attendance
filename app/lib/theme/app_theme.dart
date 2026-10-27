@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 /// 航班打卡主题色 —— 对齐旧 web 前端的设计 token
 ///
-/// 这里只保留 light/dark 共同的 brand 色 + 排行榜用色。
+/// 这里只保留 light/dark 共同的 brand 色与强调色。
 /// 所有 light/dark 各自的 surface / text / semantic token 都走 [AppPalette]。
 class AppColors {
   // ── 主色 (light/dark 共用) ──
@@ -17,7 +17,7 @@ class AppColors {
   static const warning = Color(0xFFF59E0B);
   static const danger = Color(0xFFEF4444);
 
-  // ── 排行榜用色 (light/dark 共用 — 色彩本身在不同背景下都足够亮) ──
+  // ── 强调色 (light/dark 共用 — 色彩本身在不同背景下都足够亮) ──
   static const lbFirst = Color(0xFF93C5FD);
   static const lbSecond = Color(0xFFBFDBFE);
   static const lbThird = Color(0xFFC4B5FD);
@@ -28,72 +28,74 @@ class AppColors {
 /// Light 主题的 palette token 原始值。实际渲染走 [AppPalette.light]。
 class _LightPaletteTokens {
   // ── Surface ──
-  static const bg = Color(0xFFF0F4F8);            // slate-50
-  static const card = Color(0xFFFFFFFF);           // white
-  static const surfaceMuted = Color(0xFFF1F5F9);   // slate-100 — tabs/次按钮 bg
-  static const border = Color(0xFFE2E8F0);         // slate-200
+  static const bg = Color(0xFFF0F4F8); // slate-50
+  static const card = Color(0xFFFFFFFF); // white
+  static const surfaceMuted = Color(0xFFF1F5F9); // slate-100 — tabs/次按钮 bg
+  static const border = Color(0xFFE2E8F0); // slate-200
 
   // ── Text ──
-  static const text = Color(0xFF1E293B);           // slate-800
-  static const textSecondary = Color(0xFF64748B);  // slate-500
-  static const textLight = Color(0xFF94A3B8);      // slate-400
+  static const text = Color(0xFF1E293B); // slate-800
+  static const textSecondary = Color(0xFF64748B); // slate-500
+  static const textLight = Color(0xFF94A3B8); // slate-400
 
   // ── Brand ──
-  static const primaryBg = Color(0xFFEFF6FF);      // blue-50
+  static const primaryBg = Color(0xFFEFF6FF); // blue-50
 
   // ── Semantic: success (green) ──
-  static const successBg = Color(0xFFDCFCE7);      // green-100
-  static const successText = Color(0xFF15803D);    // green-700
+  static const successBg = Color(0xFFDCFCE7); // green-100
+  static const successText = Color(0xFF15803D); // green-700
 
   // ── Semantic: warning (amber) ──
-  static const warningBg = Color(0xFFFEF3C7);      // amber-100
-  static const warningText = Color(0xFF92400E);    // amber-800
+  static const warningBg = Color(0xFFFEF3C7); // amber-100
+  static const warningText = Color(0xFF92400E); // amber-800
 
   // ── Semantic: danger (red) ──
-  static const dangerBg = Color(0xFFFECACA);       // red-100
-  static const dangerText = Color(0xFFB91C1C);     // red-700
+  static const dangerBg = Color(0xFFFECACA); // red-100
+  static const dangerText = Color(0xFFB91C1C); // red-700
 
   // ── Semantic: info (purple) ──
-  static const infoBg = Color(0xFFF3E8FF);         // purple-100
+  static const infoBg = Color(0xFFF3E8FF); // purple-100
 
   // ── Dock ──
-  static const dockBg = Color(0xFFF1F5F9);         // slate-100(用时再 withValues 0.72)
+  static const dockBg = Color(0xFFF1F5F9); // slate-100(用时再 withValues 0.72)
   static const dockBorder = Color.fromARGB(0x80, 0xFF, 0xFF, 0xFF); // white 50%
 }
 
 /// Dark 主题的 palette token 原始值。实际渲染走 [AppPalette.dark]。
 class _DarkPaletteTokens {
   // ── Surface ──
-  static const bg = Color(0xFF0F172A);             // slate-900
-  static const card = Color(0xFF1E293B);           // slate-800
-  static const surfaceMuted = Color(0xFF334155);   // slate-700 — tabs/次按钮 bg(比 card 浅一档)
-  static const border = Color(0xFF334155);         // slate-700
+  static const bg = Color(0xFF0F172A); // slate-900
+  static const card = Color(0xFF1E293B); // slate-800
+  static const surfaceMuted = Color(
+    0xFF334155,
+  ); // slate-700 — tabs/次按钮 bg(比 card 浅一档)
+  static const border = Color(0xFF334155); // slate-700
 
   // ── Text ──
-  static const text = Color(0xFFF1F5F9);           // slate-100
-  static const textSecondary = Color(0xFFCBD5E1);  // slate-300
-  static const textLight = Color(0xFF94A3B8);      // slate-400
+  static const text = Color(0xFFF1F5F9); // slate-100
+  static const textSecondary = Color(0xFFCBD5E1); // slate-300
+  static const textLight = Color(0xFF94A3B8); // slate-400
 
   // ── Brand ──
-  static const primaryBg = Color(0xFF1E3A8A);      // blue-800
+  static const primaryBg = Color(0xFF1E3A8A); // blue-800
 
   // ── Semantic: success (green) ──
-  static const successBg = Color(0xFF14532D);      // green-900
-  static const successText = Color(0xFF4ADE80);    // green-400
+  static const successBg = Color(0xFF14532D); // green-900
+  static const successText = Color(0xFF4ADE80); // green-400
 
   // ── Semantic: warning (amber) ──
-  static const warningBg = Color(0xFF78350F);      // amber-900
-  static const warningText = Color(0xFFFCD34D);    // amber-300
+  static const warningBg = Color(0xFF78350F); // amber-900
+  static const warningText = Color(0xFFFCD34D); // amber-300
 
   // ── Semantic: danger (red) ──
-  static const dangerBg = Color(0xFF7F1D1D);       // red-900
-  static const dangerText = Color(0xFFFCA5A5);     // red-300
+  static const dangerBg = Color(0xFF7F1D1D); // red-900
+  static const dangerText = Color(0xFFFCA5A5); // red-300
 
   // ── Semantic: info (purple) ──
-  static const infoBg = Color(0xFF6B21A8);         // purple-800
+  static const infoBg = Color(0xFF6B21A8); // purple-800
 
   // ── Dock ──
-  static const dockBg = Color(0xFF475569);         // slate-600(用时再 withValues 0.72)
+  static const dockBg = Color(0xFF475569); // slate-600(用时再 withValues 0.72)
   static const dockBorder = Color.fromARGB(0x14, 0xFF, 0xFF, 0xFF); // white 8%
 }
 
@@ -103,6 +105,7 @@ extension PaletteContext on BuildContext {
   AppPalette get palette =>
       Theme.of(this).extension<AppPalette>() ?? AppPalette.light;
 }
+
 ///
 /// 使用方法:
 /// ```dart
@@ -113,7 +116,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
   // ── Surface ──
   final Color bg;
   final Color card;
-  final Color surfaceMuted;   // tabs/次按钮 bg、排行榜 >5 默认色
+  final Color surfaceMuted; // tabs、次按钮和弱化卡片背景
   final Color border;
 
   // ── Text ──
@@ -140,8 +143,8 @@ class AppPalette extends ThemeExtension<AppPalette> {
   final Color infoBg;
 
   // ── Dock ──
-  final Color dockBg;          // 完整色,用时再 withValues 0.72
-  final Color dockBorder;      // 已带 alpha
+  final Color dockBg; // 完整色,用时再 withValues 0.72
+  final Color dockBorder; // 已带 alpha
 
   const AppPalette({
     required this.bg,
@@ -286,10 +289,15 @@ class _Baseline {
 }
 
 class AppTheme {
-  static ThemeData light() => _build(brightness: Brightness.light, palette: AppPalette.light);
-  static ThemeData dark() => _build(brightness: Brightness.dark, palette: AppPalette.dark);
+  static ThemeData light() =>
+      _build(brightness: Brightness.light, palette: AppPalette.light);
+  static ThemeData dark() =>
+      _build(brightness: Brightness.dark, palette: AppPalette.dark);
 
-  static ThemeData _build({required Brightness brightness, required AppPalette palette}) {
+  static ThemeData _build({
+    required Brightness brightness,
+    required AppPalette palette,
+  }) {
     final isDark = brightness == Brightness.dark;
     return ThemeData(
       useMaterial3: true,

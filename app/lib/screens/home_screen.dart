@@ -181,15 +181,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   SizedBox(width: r.gapXs),
                   Padding(
                     padding: EdgeInsets.only(bottom: r.gap2xs),
-                    child: Text('👋',
-                        style: TextStyle(fontSize: r.text2xl)),
+                    child: Text('👋', style: TextStyle(fontSize: r.text2xl)),
                   ),
                 ],
               ),
               SizedBox(height: r.gapXs),
               Obx(
                 () => Text(
-                  state.currentUser.value?.nickname ?? '用户',
+                  state.profile.value?.nickname ?? '用户',
                   style: TextStyle(
                     fontSize: r.text4xl,
                     fontWeight: FontWeight.w800,
@@ -301,7 +300,7 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Obx(
                   () => Text(
-                    state.currentUser.value?.nickname ?? '用户',
+                    state.profile.value?.nickname ?? '用户',
                     style: TextStyle(
                       fontSize: r.text4xl,
                       fontWeight: FontWeight.w800,
@@ -312,8 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 SizedBox(width: r.gapXs),
                 Padding(
                   padding: EdgeInsets.only(bottom: r.gap2xs),
-                  child: Text('👋',
-                      style: TextStyle(fontSize: r.text2xl)),
+                  child: Text('👋', style: TextStyle(fontSize: r.text2xl)),
                 ),
               ],
             ),
