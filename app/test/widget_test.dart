@@ -16,6 +16,7 @@ void main() {
     );
 
     expect(find.text('首页'), findsOneWidget);
+    expect(find.byIcon(Icons.home_rounded), findsOneWidget);
     expect(find.text('记录'), findsOneWidget);
     expect(find.text('我的'), findsOneWidget);
     expect(find.text('排行'), findsNothing);

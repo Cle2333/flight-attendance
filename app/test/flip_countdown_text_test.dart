@@ -31,13 +31,20 @@ void main() {
 
     text.value = '00:00:59';
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 180));
+    await tester.pump(const Duration(milliseconds: 100));
 
-    expect(find.text('8'), findsOneWidget);
-    expect(find.text('9'), findsOneWidget);
+    // 前半页只显示旧数字，避免新旧数字叠在同一位置。
+    expect(find.text('8'), findsNWidgets(2));
+    expect(find.text('9'), findsNothing);
     expect(tester.takeException(), isNull);
 
-    await tester.pump(const Duration(milliseconds: 260));
+    await tester.pump(const Duration(milliseconds: 200));
+
+    // 后半页只显示新数字。
+    expect(find.text('8'), findsNothing);
+    expect(find.text('9'), findsNWidgets(2));
+
+    await tester.pump(const Duration(milliseconds: 120));
     expect(find.text('8'), findsNothing);
     expect(find.text('9'), findsOneWidget);
   });

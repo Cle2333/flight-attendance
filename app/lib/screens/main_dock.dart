@@ -197,14 +197,10 @@ class DockTab extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 220),
-                    child: Icon(
-                      active ? activeIcon : icon,
-                      key: ValueKey(active),
-                      size: r.iconMd,
-                      color: active ? AppColors.primary : palette.textLight,
-                    ),
+                  Icon(
+                    active ? activeIcon : icon,
+                    size: r.iconMd,
+                    color: active ? AppColors.primary : palette.textLight,
                   ),
                   SizedBox(height: r.gap2xs),
                   AnimatedDefaultTextStyle(
