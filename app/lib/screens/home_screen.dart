@@ -159,15 +159,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // 问候 + 👋 同行,昵称在下一行 —— 跟桌面端结构完全一致,
-        // 桌面端手机端统一居中。
+        // 问候 + 👋 同行，昵称在下一行；手机端与桌面端统一左对齐。
         Padding(
-          padding: r.padFromLTRB(0, 0, 0, 0),
+          padding: r.padH(1.4),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
@@ -280,42 +279,45 @@ class _HomeScreenState extends State<HomeScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // ── 顶部:问候 + 昵称 + 👋 居中横排 ──────────────
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              _greeting(),
-              style: TextStyle(
-                fontSize: r.textXl,
-                color: context.palette.textSecondary,
-                fontWeight: FontWeight.w500,
+        // ── 顶部:问候 + 昵称 + 👋，整体左对齐 ──────────────
+        Padding(
+          padding: r.padH(1.4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                _greeting(),
+                style: TextStyle(
+                  fontSize: r.textXl,
+                  color: context.palette.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-            ),
-            SizedBox(height: r.gapXs),
-            // 昵称 + 👋 emoji 同行,emoji 紧跟在文字后
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Obx(
-                  () => Text(
-                    state.profile.value?.nickname ?? '用户',
-                    style: TextStyle(
-                      fontSize: r.text4xl,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -1,
+              SizedBox(height: r.gapXs),
+              // 昵称 + 👋 emoji 同行,emoji 紧跟在文字后
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Obx(
+                    () => Text(
+                      state.profile.value?.nickname ?? '用户',
+                      style: TextStyle(
+                        fontSize: r.text4xl,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -1,
+                      ),
                     ),
                   ),
-                ),
-                SizedBox(width: r.gapXs),
-                Padding(
-                  padding: EdgeInsets.only(bottom: r.gap2xs),
-                  child: Text('👋', style: TextStyle(fontSize: r.text2xl)),
-                ),
-              ],
-            ),
-          ],
+                  SizedBox(width: r.gapXs),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: r.gap2xs),
+                    child: Text('👋', style: TextStyle(fontSize: r.text2xl)),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
         const Spacer(),
         // ── 中部:倒计时大字,居中 ──────────────────────

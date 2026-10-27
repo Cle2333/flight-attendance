@@ -64,9 +64,6 @@ class RecordsScreen extends StatelessWidget {
             // 先读 — 让 GetX 追到
             final total = state.totalRecords;
             final streak = state.currentStreak;
-            final avg = state.averageTakeoffTime;
-            final badges = state.badges;
-            final avgText = avg?.label ?? '--:--';
 
             return Padding(
               padding: r.padH(1.4),
@@ -96,24 +93,6 @@ class RecordsScreen extends StatelessWidget {
                           iconBg: context.palette.successBg,
                           value: '$streak',
                           label: '连续天数',
-                        ),
-                      ),
-                      SizedBox(
-                        width: cardW,
-                        child: StatCard(
-                          icon: '⏰',
-                          iconBg: context.palette.warningBg,
-                          value: avgText,
-                          label: '平均起飞时间',
-                        ),
-                      ),
-                      SizedBox(
-                        width: cardW,
-                        child: StatCard(
-                          icon: '🏆',
-                          iconBg: context.palette.infoBg,
-                          value: '$badges',
-                          label: '徽章',
                         ),
                       ),
                     ],
