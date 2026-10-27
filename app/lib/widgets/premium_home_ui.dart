@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 import '../utils/responsive.dart';
+import 'flip_countdown_text.dart';
 
 /// 首页背景：低饱和渐变、光晕与一条若隐若现的飞行轨迹。
 class FlightAtmosphere extends StatelessWidget {
@@ -404,23 +405,17 @@ class CountdownHeroCard extends StatelessWidget {
               FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 220),
-                  transitionBuilder: (child, animation) =>
-                      FadeTransition(opacity: animation, child: child),
-                  child: Text(
-                    countdown,
-                    key: ValueKey(countdown),
-                    style: TextStyle(
-                      fontSize: r.textDisplay * (compact ? 1.08 : 1.30),
-                      height: 0.95,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -3.4,
-                      color: isDark
-                          ? AppColors.accentLight
-                          : AppColors.primaryDark,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    ),
+                child: FlipCountdownText(
+                  text: countdown,
+                  style: TextStyle(
+                    fontSize: r.textDisplay * (compact ? 1.08 : 1.30),
+                    height: 0.95,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -3.4,
+                    color: isDark
+                        ? AppColors.accentLight
+                        : AppColors.primaryDark,
+                    fontFeatures: const [FontFeature.tabularFigures()],
                   ),
                 ),
               ),
