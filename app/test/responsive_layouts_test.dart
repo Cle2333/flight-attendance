@@ -24,6 +24,7 @@ void main() {
     expect(find.text('记录'), findsOneWidget);
     expect(find.text('我的'), findsOneWidget);
     expect(find.text('本地 SQLite'), findsOneWidget);
+    expect(find.byIcon(Icons.calendar_today_outlined), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -35,12 +36,20 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('记录组件在较窄桌面下自动缩放日历且无溢出', (tester) async {
+    await _setSize(tester, const Size(1024, 760));
+    await tester.pumpWidget(_recordsPreview(desktop: true));
+    expect(find.text('航班记录'), findsOneWidget);
+    expect(find.text('起飞记录'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('记录组件在桌面双栏下无溢出', (tester) async {
     await _setSize(tester, const Size(1280, 860));
     await tester.pumpWidget(_recordsPreview(desktop: true));
     expect(find.text('航班记录'), findsOneWidget);
     expect(find.text('起飞记录'), findsOneWidget);
-    await tester.pump();
+    expect(tester.takeException(), isNull);
   });
 }
 
@@ -84,12 +93,23 @@ Widget _recordsPreview({required bool desktop}) {
   final left = Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      CalendarWidget(
-        currentDate: DateTime.now(),
-        onMonthChanged: _noop,
-        hasRecordOn: (_) => true,
-        onDateTapped: (_) {},
-        expandedNotifier: ValueNotifier(false),
+      LayoutBuilder(
+        builder: (context, constraints) {
+          const designWidth = 430.0;
+          final calendar = CalendarWidget(
+            currentDate: DateTime.now(),
+            onMonthChanged: _noop,
+            hasRecordOn: (_) => true,
+            onDateTapped: (_) {},
+            expandedNotifier: ValueNotifier(false),
+          );
+          if (constraints.maxWidth >= designWidth) return calendar;
+          return FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.topCenter,
+            child: SizedBox(width: designWidth, child: calendar),
+          );
+        },
       ),
       const SizedBox(height: 16),
       const Padding(
@@ -160,10 +180,7 @@ Widget _recordsPreview({required bool desktop}) {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          SizedBox(
-                            width: 330,
-                            child: SingleChildScrollView(child: left),
-                          ),
+                          Expanded(child: SingleChildScrollView(child: left)),
                           const SizedBox(width: 28),
                           Expanded(child: SingleChildScrollView(child: right)),
                         ],

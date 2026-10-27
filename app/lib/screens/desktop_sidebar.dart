@@ -23,12 +23,6 @@ class DesktopSidebar extends StatelessWidget {
     Icons.person_outline,
   ];
 
-  static const _activeIcons = <IconData>[
-    Icons.home_rounded,
-    Icons.calendar_month_rounded,
-    Icons.person_rounded,
-  ];
-
   static const _labels = ['首页', '记录', '我的'];
 
   @override
@@ -99,72 +93,18 @@ class DesktopSidebar extends StatelessWidget {
                 SizedBox(height: r.gapSm),
                 SizedBox(
                   height: itemHeight * _labels.length,
-                  child: Stack(
-                    children: [
-                      AnimatedPositioned(
-                        duration: const Duration(milliseconds: 420),
-                        curve: Curves.easeOutCubic,
-                        left: 0,
-                        right: 0,
-                        top: index * itemHeight + 6,
-                        height: itemHeight - 12,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                              colors: isDark
-                                  ? [
-                                      Colors.white.withValues(alpha: 0.18),
-                                      AppColors.primary.withValues(alpha: 0.18),
-                                      Colors.white.withValues(alpha: 0.04),
-                                    ]
-                                  : [
-                                      Colors.white.withValues(alpha: 0.94),
-                                      Colors.white.withValues(alpha: 0.52),
-                                      AppColors.primary.withValues(alpha: 0.08),
-                                    ],
-                            ),
-                            borderRadius: BorderRadius.circular(r.radiusLg),
-                            border: Border.all(
-                              color: isDark
-                                  ? Colors.white.withValues(alpha: 0.15)
-                                  : Colors.white.withValues(alpha: 0.92),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(
-                                  alpha: isDark ? 0.16 : 0.06,
-                                ),
-                                blurRadius: 16,
-                                offset: const Offset(0, 6),
-                              ),
-                              BoxShadow(
-                                color: AppColors.primary.withValues(
-                                  alpha: isDark ? 0.14 : 0.09,
-                                ),
-                                blurRadius: 20,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
+                  child: Column(
+                    children: List.generate(_labels.length, (i) {
+                      return SizedBox(
+                        height: itemHeight,
+                        child: _SidebarTab(
+                          icon: _icons[i],
+                          label: _labels[i],
+                          active: i == index,
+                          onTap: () => onChanged(i),
                         ),
-                      ),
-                      Column(
-                        children: List.generate(_labels.length, (i) {
-                          return SizedBox(
-                            height: itemHeight,
-                            child: _SidebarTab(
-                              icon: _icons[i],
-                              activeIcon: _activeIcons[i],
-                              label: _labels[i],
-                              active: i == index,
-                              onTap: () => onChanged(i),
-                            ),
-                          );
-                        }),
-                      ),
-                    ],
+                      );
+                    }),
                   ),
                 ),
                 const Spacer(),
@@ -252,14 +192,12 @@ class _BrandHeader extends StatelessWidget {
 
 class _SidebarTab extends StatelessWidget {
   final IconData icon;
-  final IconData activeIcon;
   final String label;
   final bool active;
   final VoidCallback onTap;
 
   const _SidebarTab({
     required this.icon,
-    required this.activeIcon,
     required this.label,
     required this.active,
     required this.onTap,
@@ -269,6 +207,7 @@ class _SidebarTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final r = context.r;
     final palette = context.palette;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Semantics(
       button: true,
@@ -283,32 +222,63 @@ class _SidebarTab extends StatelessWidget {
             onTap();
           },
           behavior: HitTestBehavior.opaque,
-          child: Padding(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 320),
+            curve: Curves.easeOutCubic,
+            margin: EdgeInsets.symmetric(vertical: r.gap2xs),
             padding: EdgeInsets.symmetric(horizontal: r.gapSm),
-            child: Row(
-              children: [
-                AnimatedScale(
-                  scale: active ? 1.08 : 1,
-                  duration: const Duration(milliseconds: 260),
-                  curve: Curves.easeOutCubic,
-                  child: Icon(
-                    active ? activeIcon : icon,
-                    size: r.iconMd,
-                    color: active ? AppColors.primary : palette.textLight,
+            decoration: BoxDecoration(
+              color: active
+                  ? (isDark ? palette.card : Colors.white)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(r.radiusLg),
+              border: active
+                  ? Border.all(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.14)
+                          : Colors.white.withValues(alpha: 0.94),
+                    )
+                  : null,
+              boxShadow: active
+                  ? [
+                      BoxShadow(
+                        color: Colors.black.withValues(
+                          alpha: isDark ? 0.16 : 0.07,
+                        ),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedScale(
+                    scale: active ? 1.08 : 1,
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeOutCubic,
+                    child: Icon(
+                      icon,
+                      size: r.iconMd,
+                      color: active ? AppColors.primary : palette.textLight,
+                    ),
                   ),
-                ),
-                SizedBox(width: r.gapSm),
-                AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 240),
-                  curve: Curves.easeOutCubic,
-                  style: TextStyle(
-                    fontSize: r.textMd,
-                    fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                    color: active ? AppColors.primary : palette.textSecondary,
+                  SizedBox(width: r.gapSm),
+                  AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 240),
+                    curve: Curves.easeOutCubic,
+                    style: TextStyle(
+                      fontSize: r.textMd,
+                      fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                      color: active ? AppColors.primary : palette.textSecondary,
+                    ),
+                    child: Text(label),
                   ),
-                  child: Text(label),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

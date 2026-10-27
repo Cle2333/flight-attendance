@@ -218,7 +218,6 @@ class RecordsScreen extends StatelessWidget {
     AppState state,
     Responsive r,
   ) {
-    final leftWidth = (r.width * 0.24).clamp(300.0, 370.0).toDouble();
     return Padding(
       padding: EdgeInsets.fromLTRB(r.gapLg, r.gapLg, r.gapLg, 0),
       child: Column(
@@ -234,22 +233,13 @@ class RecordsScreen extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(
-                  width: leftWidth,
+                Expanded(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.only(bottom: r.gapLg),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Obx(
-                          () => CalendarWidget(
-                            currentDate: ctrl.calDate.value,
-                            onMonthChanged: ctrl.shiftMonth,
-                            hasRecordOn: state.hasRecordOn,
-                            onDateTapped: ctrl.navigateToDay,
-                            expandedNotifier: ctrl.calendarExpanded,
-                          ),
-                        ),
+                        Obx(() => _buildScaledCalendar(context, ctrl, state)),
                         SizedBox(height: r.gapMd),
                         const _SectionLabel(text: '快速统计'),
                         _buildQuickStats(context, state, stacked: true),
@@ -285,6 +275,33 @@ class RecordsScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildScaledCalendar(
+    BuildContext context,
+    RecordsController ctrl,
+    AppState state,
+  ) {
+    const designWidth = 430.0;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final calendar = CalendarWidget(
+          currentDate: ctrl.calDate.value,
+          onMonthChanged: ctrl.shiftMonth,
+          hasRecordOn: state.hasRecordOn,
+          onDateTapped: ctrl.navigateToDay,
+          expandedNotifier: ctrl.calendarExpanded,
+        );
+        if (constraints.maxWidth >= designWidth) {
+          return calendar;
+        }
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.topCenter,
+          child: SizedBox(width: designWidth, child: calendar),
+        );
+      },
     );
   }
 

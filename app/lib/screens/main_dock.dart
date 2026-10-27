@@ -19,12 +19,6 @@ class MainDock extends StatelessWidget {
     Icons.person_outline,
   ];
 
-  static const _activeIcons = <IconData>[
-    Icons.home_rounded,
-    Icons.calendar_month_rounded,
-    Icons.person_rounded,
-  ];
-
   static const _labels = ['首页', '记录', '我的'];
 
   @override
@@ -73,78 +67,17 @@ class MainDock extends StatelessWidget {
                     : Colors.white.withValues(alpha: 0.74),
               ),
             ),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final itemWidth = constraints.maxWidth / _icons.length;
-                final inset = r.gapXs * 0.55;
-                return Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    AnimatedPositioned(
-                      duration: const Duration(milliseconds: 420),
-                      curve: Curves.easeOutCubic,
-                      left: itemWidth * index + inset,
-                      top: inset,
-                      width: itemWidth - inset * 2,
-                      height: constraints.maxHeight - inset * 2,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: isDark
-                                ? [
-                                    Colors.white.withValues(alpha: 0.19),
-                                    AppColors.primary.withValues(alpha: 0.20),
-                                    Colors.white.withValues(alpha: 0.06),
-                                  ]
-                                : [
-                                    Colors.white.withValues(alpha: 0.92),
-                                    Colors.white.withValues(alpha: 0.58),
-                                    AppColors.primary.withValues(alpha: 0.08),
-                                  ],
-                          ),
-                          borderRadius: BorderRadius.circular(r.radiusLg),
-                          border: Border.all(
-                            color: isDark
-                                ? Colors.white.withValues(alpha: 0.16)
-                                : Colors.white.withValues(alpha: 0.94),
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(
-                                alpha: isDark ? 0.16 : 0.07,
-                              ),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
-                            ),
-                            BoxShadow(
-                              color: AppColors.primary.withValues(
-                                alpha: isDark ? 0.16 : 0.10,
-                              ),
-                              blurRadius: 20,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Row(
-                      children: List.generate(_icons.length, (i) {
-                        return Expanded(
-                          child: DockTab(
-                            icon: _icons[i],
-                            activeIcon: _activeIcons[i],
-                            label: _labels[i],
-                            active: i == index,
-                            onTap: () => onChanged(i),
-                          ),
-                        );
-                      }),
-                    ),
-                  ],
+            child: Row(
+              children: List.generate(_icons.length, (i) {
+                return Expanded(
+                  child: DockTab(
+                    icon: _icons[i],
+                    label: _labels[i],
+                    active: i == index,
+                    onTap: () => onChanged(i),
+                  ),
                 );
-              },
+              }),
             ),
           ),
         ),
@@ -155,7 +88,6 @@ class MainDock extends StatelessWidget {
 
 class DockTab extends StatelessWidget {
   final IconData icon;
-  final IconData activeIcon;
   final String label;
   final bool active;
   final VoidCallback onTap;
@@ -163,7 +95,6 @@ class DockTab extends StatelessWidget {
   const DockTab({
     super.key,
     required this.icon,
-    required this.activeIcon,
     required this.label,
     required this.active,
     required this.onTap,
@@ -173,6 +104,7 @@ class DockTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final r = context.r;
     final palette = context.palette;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Semantics(
       button: true,
@@ -188,33 +120,65 @@ class DockTab extends StatelessWidget {
           },
           behavior: HitTestBehavior.opaque,
           child: AnimatedScale(
-            scale: active ? 1.045 : 1,
+            scale: active ? 1.04 : 1,
             duration: const Duration(milliseconds: 260),
             curve: Curves.easeOutCubic,
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    active ? activeIcon : icon,
-                    size: r.iconMd,
-                    color: active ? AppColors.primary : palette.textLight,
-                  ),
-                  SizedBox(height: r.gap2xs),
-                  AnimatedDefaultTextStyle(
-                    duration: const Duration(milliseconds: 240),
-                    curve: Curves.easeOutCubic,
-                    style: TextStyle(
-                      fontSize: r.textXs,
-                      fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 320),
+              curve: Curves.easeOutCubic,
+              margin: EdgeInsets.symmetric(
+                horizontal: r.gapXs * 0.35,
+                vertical: r.gapXs * 0.55,
+              ),
+              decoration: BoxDecoration(
+                color: active
+                    ? (isDark ? palette.card : Colors.white)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(r.radiusLg),
+                border: active
+                    ? Border.all(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.14)
+                            : Colors.white.withValues(alpha: 0.94),
+                      )
+                    : null,
+                boxShadow: active
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                            alpha: isDark ? 0.16 : 0.07,
+                          ),
+                          blurRadius: 16,
+                          offset: const Offset(0, 6),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      icon,
+                      size: r.iconMd,
                       color: active ? AppColors.primary : palette.textLight,
-                      letterSpacing: active ? 0.2 : 0,
                     ),
-                    child: Text(label),
-                  ),
-                ],
+                    SizedBox(height: r.gap2xs),
+                    AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 240),
+                      curve: Curves.easeOutCubic,
+                      style: TextStyle(
+                        fontSize: r.textXs,
+                        fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                        color: active ? AppColors.primary : palette.textLight,
+                        letterSpacing: active ? 0.2 : 0,
+                      ),
+                      child: Text(label),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

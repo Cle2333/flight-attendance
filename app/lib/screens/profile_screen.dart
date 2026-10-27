@@ -64,7 +64,6 @@ class ProfileScreen extends StatelessWidget {
     String nickname,
     Responsive r,
   ) {
-    final leftWidth = (r.width * 0.26).clamp(310.0, 380.0).toDouble();
     return Padding(
       padding: EdgeInsets.fromLTRB(r.gapLg, r.gapLg, r.gapLg, 0),
       child: Column(
@@ -80,8 +79,7 @@ class ProfileScreen extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SizedBox(
-                  width: leftWidth,
+                Expanded(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.only(bottom: r.gapLg),
                     child: Column(
