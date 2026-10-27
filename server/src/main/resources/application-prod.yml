@@ -1,0 +1,29 @@
+# =============================================================================
+#  application-prod.yml —— prod profile 独有配置
+# =============================================================================
+#
+#  ⚠️ 生产部署必须设环境变量：
+#     DB_URL / DB_USER / DB_PASSWORD
+#     JWT_SECRET（必改 ≥32 字节随机）
+#     ADMIN_PASSWORD（如果将来加了 admin 鉴权）
+#
+#  详见 application-config.yml 内的注释。
+# =============================================================================
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
+    show-sql: false
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+logging:
+  level:
+    root: WARN
+    com.cle2333.flightattendance: INFO

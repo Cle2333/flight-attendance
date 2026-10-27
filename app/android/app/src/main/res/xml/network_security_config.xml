@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 9+ 网络安全配置。
+  航班打卡是本地 LAN 部署，明文 HTTP 走局域网后端，必须显式允许。
+
+  base-config cleartextTrafficPermitted="true" = 全局放行明文 HTTP
+  （也可以改成 domain-config 只放行具体 IP / 域名，更严格）
+
+  改成更严格版本（只放行 LAN 后端）：
+  <domain-config cleartextTrafficPermitted="true">
+      <domain includeSubdomains="true">192.168.31.39</domain>
+      <domain includeSubdomains="true">10.0.2.2</domain>
+      <domain includeSubdomains="true">localhost</domain>
+  </domain-config>
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>

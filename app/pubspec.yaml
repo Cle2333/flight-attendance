@@ -1,0 +1,45 @@
+name: flight_attendance_app
+description: "航班打卡 - 记录每一次起飞"
+publish_to: 'none'
+# Flutter 习惯：versionName+versionCode
+#   - versionName = "MAJOR.MINOR.PATCH"  → 仅作显示，不影响升级判断
+#   - versionCode = 后的整数（必须 ≥ 1） → Android/iOS 升级检查只看这个
+#
+# ⚠️ 规则：versionCode 必须**单调递增**。从 1 改 0、从 100 改 99 都不行。
+#    从 1.0.0+1 改成 0.1.1+2 才是正确的“跨大变”法。
+#
+# 进阶：让 CI 自动拼 build 号，避免人为记错：
+#   version: 0.1.1+$(git rev-list --count HEAD)
+#   （需要配合 sed 改 yaml，或者用 fastlane/gradle 脚本）
+version: 0.1.1+2
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.8
+
+  # 网络
+  http: ^1.2.2
+
+  # 状态管理 + 路由
+  get: ^4.6.6
+
+  # 本地存储
+  shared_preferences: ^2.3.2
+
+  # 日期格式化
+  intl: ^0.19.0
+
+  # 打开外部链接（关于页跳 GitHub）
+  url_launcher: ^6.2.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

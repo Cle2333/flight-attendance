@@ -1,0 +1,32 @@
+# ============================================================
+# 'h2' profile —— 本地没装 MariaDB 时的备胎。
+#
+# 用法（任选其一）：
+#   1. 命令行：
+#        SPRING_PROFILES_ACTIVE=h2 java -jar target/flight-attendance-server.jar
+#   2. 环境变量：
+#        export SPRING_PROFILES_ACTIVE=h2
+#        ./mvnw spring-boot:run
+#   3. 在 app/lib/state/app_state.dart 启动时改 API_BASE_URL 到 http://localhost:8080
+#
+# 数据落在 ./data/flight_attendance.mv.db （重启保留）
+# ============================================================
+
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/flight_attendance;MODE=MariaDB;DATABASE_TO_LOWER=TRUE;AUTO_SERVER=TRUE
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update   # 没 Flyway 迁移 —— H2 模式下让 Hibernate 建表
+    database-platform: org.hibernate.dialect.H2Dialect
+    open-in-view: false
+  flyway:
+    enabled: false        # Flyway 关掉（H2 用 ddl-auto）
+
+logging:
+  level:
+    com.cle2333.flightattendance: DEBUG
+    org.springframework.security: INFO

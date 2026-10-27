@@ -1,0 +1,36 @@
+version: "3.9"
+
+# 本地开发用 —— 一键起一个 MariaDB
+#
+# 用法：
+#   cd server
+#   docker compose up -d
+#
+# 然后 Spring Boot 用默认配置连上去即可：
+#   ./mvnw spring-boot:run
+# 或
+#   java -jar target/flight-attendance-server.jar
+#
+# 数据卷：./data/mariadb 持久化
+# 端口：3306
+
+services:
+  mariadb:
+    image: mariadb:11
+    container_name: flight-attendance-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: root
+      MARIADB_DATABASE: flight_attendance
+      MARIADB_USER: flight
+      MARIADB_PASSWORD: flight
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./data/mariadb:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

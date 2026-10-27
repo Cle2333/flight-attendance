@@ -1,0 +1,24 @@
+# =============================================================================
+#  application-dev.yml —— dev profile 独有配置
+# =============================================================================
+#
+#  数据库连接 / 用户名 / 密码等"通用可改项"已在 application-config.yml 里
+#  这里只放 dev 专属的：MariaDB 方言、Flyway 开、validate schema
+# =============================================================================
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate   # 让 Flyway 管控 schema，JPA 只校验一致性
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+    show-sql: false
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true

@@ -1,0 +1,6 @@
+# Copy this to key.properties and fill in real values for local release builds.
+# key.properties is in .gitignore - NEVER commit it.
+storePassword=your-keystore-password
+keyPassword=your-key-password
+keyAlias=your-key-alias
+storeFile=keystore/release.jks

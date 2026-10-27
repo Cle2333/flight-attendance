@@ -1,0 +1,29 @@
+# =============================================================================
+#  application.yml —— 项目固定配置（一般不动）
+# =============================================================================
+#
+#  要改"端口 / DB / JWT / admin 密码"等运行时配置，请编辑 application-config.yml
+#  要改"profile 之间硬差异"（如 dev 默认连 localhost，h2 不用 Flyway），请编辑对应
+#  application-{profile}.yml
+# =============================================================================
+
+spring:
+  application:
+    name: flight-attendance
+  profiles:
+    # 默认 profile。生产可用环境变量 SPRING_PROFILES_ACTIVE=prod 覆盖
+    active: dev
+  # 显式 import “统一配置”文件 —— 这个文件里有所有可改项的默认值 + 注释。
+  # 优先级：环境变量 > application-{profile}.yml > application-config.yml
+  config:
+    import: "classpath:application-config.yml"
+  # Jackson: API 响应里的 Instant 用 ISO-8601 + UTC（与前端 Flutter 友好）
+  jackson:
+    date-format: yyyy-MM-dd'T'HH:mm:ss.SSSXXX
+    time-zone: UTC
+    default-property-inclusion: non_null
+
+logging:
+  level:
+    root: INFO
+    com.cle2333.flightattendance: DEBUG
