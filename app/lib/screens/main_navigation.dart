@@ -3,12 +3,13 @@ import 'package:get/get.dart';
 
 import '../state/controllers/navigation_controller.dart';
 import '../utils/responsive.dart';
+import '../widgets/glass_page_switcher.dart';
 import 'home_screen.dart';
 import 'main_dock.dart';
 import 'profile_screen.dart';
 import 'records_screen.dart';
 
-/// App 主壳：3 个本地功能 tab 的 IndexedStack + 底部 dock。
+/// App 主壳：3 个本地功能 tab 的玻璃过渡页 + 液体玻璃 dock。
 class MainNavigation extends StatelessWidget {
   const MainNavigation({super.key});
 
@@ -27,8 +28,7 @@ class MainNavigation extends StatelessWidget {
       extendBody: false,
       backgroundColor: r.palette.bg,
       body: Obx(
-        () => IndexedStack(
-          sizing: StackFit.expand,
+        () => GlassPageSwitcher(
           index: nav.selectedIndex.value,
           children: _screens,
         ),

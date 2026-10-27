@@ -689,40 +689,25 @@ class TakeoffPrompt extends StatelessWidget {
     final r = context.r;
     return Align(
       alignment: alignStart ? Alignment.centerLeft : Alignment.center,
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: r.gapMd,
-          vertical: r.gapSm * 0.86,
-        ),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [AppColors.primaryDark, AppColors.primary],
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.ads_click_rounded,
+            size: r.iconSm,
+            color: AppColors.primary,
           ),
-          borderRadius: BorderRadius.circular(999),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.26),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
+          SizedBox(width: r.gapXs),
+          Text(
+            '双击任意位置 · 立即起飞',
+            style: TextStyle(
+              fontSize: r.textSm,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primary,
+              letterSpacing: 0.2,
             ),
-          ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.ads_click_rounded, size: r.iconSm, color: Colors.white),
-            SizedBox(width: r.gapXs),
-            Text(
-              '双击任意位置 · 立即起飞',
-              style: TextStyle(
-                fontSize: r.textSm,
-                fontWeight: FontWeight.w700,
-                color: Colors.white,
-                letterSpacing: 0.2,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
