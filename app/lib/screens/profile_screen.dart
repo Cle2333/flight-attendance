@@ -24,267 +24,375 @@ class ProfileScreen extends StatelessWidget {
         final avatar = profile.avatar;
         final nickname = profile.nickname;
 
-        return ListView(
-          padding: EdgeInsets.only(bottom: r.gapLg),
-          children: [
-            Container(
-              margin: r.padFromLTRB(1.4, 0.8, 1.4, 0),
-              padding: r.padFromLTRB(1.4, 1.6, 1.4, 1.4),
-              decoration: BoxDecoration(
-                color: context.palette.card,
-                borderRadius: BorderRadius.circular(r.radiusXl),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  GestureDetector(
-                    onTap: () => Get.dialog(
-                      AvatarPicker(current: avatar, onPick: state.updateAvatar),
-                    ),
-                    child: Container(
-                      width: r.avatarLg,
-                      height: r.avatarLg,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppColors.accent, AppColors.primary],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+        if (r.isDesktop) {
+          return _buildDesktop(context, state, avatar, nickname, r);
+        }
+        return _buildMobile(context, state, avatar, nickname, r);
+      }),
+    );
+  }
+
+  Widget _buildMobile(
+    BuildContext context,
+    AppState state,
+    String avatar,
+    String nickname,
+    Responsive r,
+  ) {
+    return ListView(
+      padding: EdgeInsets.only(bottom: r.gapLg),
+      children: [
+        Padding(
+          padding: r.padFromLTRB(1.2, 0.9, 1.2, 0.5),
+          child: const _ProfilePageHeader(
+            title: '我的',
+            subtitle: '本地资料、偏好与数据管理',
+          ),
+        ),
+        _buildIdentityCard(context, state, avatar, nickname, r),
+        SizedBox(height: r.gapMd),
+        ..._buildSettingsGroups(context, state, avatar, nickname),
+        _buildFooter(context, r, center: true),
+      ],
+    );
+  }
+
+  Widget _buildDesktop(
+    BuildContext context,
+    AppState state,
+    String avatar,
+    String nickname,
+    Responsive r,
+  ) {
+    final leftWidth = (r.width * 0.26).clamp(310.0, 380.0).toDouble();
+    return Padding(
+      padding: EdgeInsets.fromLTRB(r.gapLg, r.gapLg, r.gapLg, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const _ProfilePageHeader(
+            title: '我的',
+            subtitle: '本地资料、偏好与数据管理',
+            desktop: true,
+          ),
+          SizedBox(height: r.gapLg),
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  width: leftWidth,
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.only(bottom: r.gapLg),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildIdentityCard(
+                          context,
+                          state,
+                          avatar,
+                          nickname,
+                          r,
+                          desktop: true,
                         ),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.25),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        avatar,
-                        style: TextStyle(fontSize: r.text2xl * 1.4),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: r.gapSm * 0.95),
-                  GestureDetector(
-                    onTap: () => Get.dialog(
-                      NicknameEditor(
-                        current: nickname,
-                        onSave: state.updateNickname,
-                      ),
-                    ),
-                    child: Text(
-                      nickname,
-                      style: TextStyle(
-                        fontSize: r.textXl,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: r.gapXs * 0.5),
-                  Text(
-                    '全部数据仅保存在本机',
-                    style: TextStyle(
-                      fontSize: r.textSm,
-                      color: context.palette.textSecondary,
-                    ),
-                  ),
-                  SizedBox(height: r.gapLg * 0.7),
-                  Container(height: 1, color: context.palette.border),
-                  SizedBox(height: r.gapLg * 0.6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _ProfileStat(n: '${state.totalRecords}', l: '总起飞'),
-                      _ProfileStat(n: '${state.currentStreak}', l: '连续天数'),
-                      _ProfileStat(n: '${state.badges}', l: '徽章'),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: r.gapMd),
-            _Group(
-              children: [
-                _Row(
-                  icon: '✏️',
-                  color: context.palette.primaryBg,
-                  title: '修改昵称',
-                  subtitle: '当前：$nickname',
-                  onTap: () => Get.dialog(
-                    NicknameEditor(
-                      current: nickname,
-                      onSave: state.updateNickname,
+                        SizedBox(height: r.gapMd),
+                        _StorageSummaryCard(state: state),
+                      ],
                     ),
                   ),
                 ),
-                _Row(
-                  icon: '🖼️',
-                  color: context.palette.infoBg,
-                  title: '更换头像',
-                  subtitle: '选择喜欢的头像',
-                  onTap: () => Get.dialog(
-                    AvatarPicker(current: avatar, onPick: state.updateAvatar),
-                  ),
-                ),
-              ],
-            ),
-            _Group(
-              children: [
-                _Row(
-                  icon: '⏱️',
-                  color: context.palette.primaryBg,
-                  title: '计时精度',
-                  subtitle:
-                      '当前：${state.settings.value.precisionEnum.displayName}',
-                  onTap: () => Get.dialog(
-                    PrecisionPicker(
-                      current: state.settings.value.precisionEnum,
-                      onPick: (precision) =>
-                          state.updatePrecision(precision.name),
-                    ),
-                  ),
-                ),
-                _Row(
-                  icon: '🎆',
-                  color: context.palette.infoBg,
-                  title: '起飞特效',
-                  subtitle: '当前：${state.settings.value.effectEmoji}',
-                  onTap: () => Get.dialog(
-                    EffectEmojiPicker(
-                      current: state.settings.value.effectEmoji,
-                      onPick: state.updateEffectEmoji,
-                    ),
-                  ),
-                ),
-                _Row(
-                  icon: '💬',
-                  color: context.palette.warningBg,
-                  title: '机长语录',
-                  subtitle: '${state.settings.value.quotes.length} 条',
-                  onTap: () => Get.dialog(
-                    QuotesEditor(
-                      initial: state.settings.value.quotes,
-                      onSave: state.updateQuotes,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            _Group(
-              children: [
-                _Row(
-                  icon: '📥',
-                  color: context.palette.successBg,
-                  title: '导入打卡记录',
-                  subtitle: '支持 JSON 备份与 CSV 表格，重复记录自动跳过',
-                  onTap: () => _importRecords(state),
-                ),
-                _Row(
-                  icon: '📤',
-                  color: context.palette.primaryBg,
-                  title: '导出 JSON 备份',
-                  subtitle: '包含时间、感受和记录创建时间',
-                  onTap: () => _exportRecords(state, RecordExportFormat.json),
-                ),
-                _Row(
-                  icon: '📤',
-                  color: context.palette.infoBg,
-                  title: '导出 CSV 表格',
-                  subtitle: '可用 Excel、Numbers 等表格软件打开',
-                  onTap: () => _exportRecords(state, RecordExportFormat.csv),
-                ),
-                _Row(
-                  icon: '💾',
-                  color: context.palette.warningBg,
-                  title: '本地 SQLite 数据库',
-                  subtitle: '${state.totalRecords} 条记录 · 点击查看文件位置',
-                  onTap: () => Get.dialog(
-                    AlertDialog(
-                      title: const Text('本地数据位置'),
-                      content: SelectableText(state.database.location),
-                      actions: [
-                        TextButton(
-                          onPressed: Get.back,
-                          child: const Text('知道了'),
+                SizedBox(width: r.gapLg),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.only(bottom: r.gapLg),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const _SectionLabel(text: '设置'),
+                        ..._buildSettingsGroups(
+                          context,
+                          state,
+                          avatar,
+                          nickname,
                         ),
+                        _buildFooter(context, r, center: false),
                       ],
                     ),
                   ),
                 ),
               ],
             ),
-            _Group(
-              children: [
-                Obx(() {
-                  final mode = state.themeMode.value;
-                  final label = switch (mode) {
-                    ThemeMode.light => '当前：浅色',
-                    ThemeMode.dark => '当前：深色',
-                    ThemeMode.system => '当前：跟随系统',
-                  };
-                  return _Row(
-                    icon: mode == ThemeMode.dark ? '🌙' : '☀️',
-                    color: context.palette.primaryBg,
-                    title: '外观主题',
-                    subtitle: label,
-                    onTap: () async {
-                      final picked = await Get.dialog<ThemeMode>(
-                        AlertDialog(
-                          title: const Text('外观主题'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _ThemeOption(
-                                mode: ThemeMode.system,
-                                current: mode,
-                                label: '跟随系统',
-                                icon: '⚙️',
-                              ),
-                              _ThemeOption(
-                                mode: ThemeMode.light,
-                                current: mode,
-                                label: '浅色',
-                                icon: '☀️',
-                              ),
-                              _ThemeOption(
-                                mode: ThemeMode.dark,
-                                current: mode,
-                                label: '深色',
-                                icon: '🌙',
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                      if (picked != null) await state.setThemeMode(picked);
-                    },
-                  );
-                }),
-              ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIdentityCard(
+    BuildContext context,
+    AppState state,
+    String avatar,
+    String nickname,
+    Responsive r, {
+    bool desktop = false,
+  }) {
+    return Container(
+      margin: r.padH(1.4),
+      padding: r.padFromLTRB(1.4, desktop ? 1.7 : 1.6, 1.4, 1.4),
+      decoration: BoxDecoration(
+        color: context.palette.card,
+        borderRadius: BorderRadius.circular(r.radiusXl),
+        border: Border.all(
+          color: context.palette.border.withValues(alpha: 0.52),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          GestureDetector(
+            onTap: () => Get.dialog(
+              AvatarPicker(current: avatar, onPick: state.updateAvatar),
             ),
-            Padding(
-              padding: r.padFromLTRB(1.6, 0.6, 1.6, 0),
-              child: Text(
-                '航班打卡 · 纯本地版\n不上传、不登录、不联网',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: r.textXs,
-                  color: context.palette.textLight,
-                  height: 1.6,
+            child: Container(
+              width: desktop ? r.avatarLg * 1.15 : r.avatarLg,
+              height: desktop ? r.avatarLg * 1.15 : r.avatarLg,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.accent, AppColors.primary],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.25),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: Text(avatar, style: TextStyle(fontSize: r.text2xl * 1.4)),
+            ),
+          ),
+          SizedBox(height: r.gapSm),
+          GestureDetector(
+            onTap: () => Get.dialog(
+              NicknameEditor(current: nickname, onSave: state.updateNickname),
+            ),
+            child: Text(
+              nickname,
+              style: TextStyle(
+                fontSize: desktop ? r.text2xl : r.textXl,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.6,
               ),
             ),
-          ],
-        );
-      }),
+          ),
+          SizedBox(height: r.gapXs * 0.5),
+          Text(
+            '全部数据仅保存在本机',
+            style: TextStyle(
+              fontSize: r.textSm,
+              color: context.palette.textSecondary,
+            ),
+          ),
+          SizedBox(height: r.gapLg * 0.7),
+          Container(height: 1, color: context.palette.border),
+          SizedBox(height: r.gapLg * 0.6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _ProfileStat(n: '${state.totalRecords}', l: '总起飞'),
+              _ProfileStat(n: '${state.currentStreak}', l: '连续天数'),
+              _ProfileStat(n: '${state.badges}', l: '徽章'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildSettingsGroups(
+    BuildContext context,
+    AppState state,
+    String avatar,
+    String nickname,
+  ) {
+    return [
+      _Group(
+        children: [
+          _Row(
+            icon: '✏️',
+            color: context.palette.primaryBg,
+            title: '修改昵称',
+            subtitle: '当前：$nickname',
+            onTap: () => Get.dialog(
+              NicknameEditor(current: nickname, onSave: state.updateNickname),
+            ),
+          ),
+          _Row(
+            icon: '🖼️',
+            color: context.palette.infoBg,
+            title: '更换头像',
+            subtitle: '选择喜欢的头像',
+            onTap: () => Get.dialog(
+              AvatarPicker(current: avatar, onPick: state.updateAvatar),
+            ),
+          ),
+        ],
+      ),
+      _Group(
+        children: [
+          _Row(
+            icon: '⏱️',
+            color: context.palette.primaryBg,
+            title: '计时精度',
+            subtitle: '当前：${state.settings.value.precisionEnum.displayName}',
+            onTap: () => Get.dialog(
+              PrecisionPicker(
+                current: state.settings.value.precisionEnum,
+                onPick: (precision) => state.updatePrecision(precision.name),
+              ),
+            ),
+          ),
+          _Row(
+            icon: '🎆',
+            color: context.palette.infoBg,
+            title: '起飞特效',
+            subtitle: '当前：${state.settings.value.effectEmoji}',
+            onTap: () => Get.dialog(
+              EffectEmojiPicker(
+                current: state.settings.value.effectEmoji,
+                onPick: state.updateEffectEmoji,
+              ),
+            ),
+          ),
+          _Row(
+            icon: '💬',
+            color: context.palette.warningBg,
+            title: '机长语录',
+            subtitle: '${state.settings.value.quotes.length} 条',
+            onTap: () => Get.dialog(
+              QuotesEditor(
+                initial: state.settings.value.quotes,
+                onSave: state.updateQuotes,
+              ),
+            ),
+          ),
+        ],
+      ),
+      _Group(
+        children: [
+          _Row(
+            icon: '📥',
+            color: context.palette.successBg,
+            title: '导入打卡记录',
+            subtitle: '支持 JSON 备份与 CSV 表格，重复记录自动跳过',
+            onTap: () => _importRecords(state),
+          ),
+          _Row(
+            icon: '📤',
+            color: context.palette.primaryBg,
+            title: '导出 JSON 备份',
+            subtitle: '包含时间、感受和记录创建时间',
+            onTap: () => _exportRecords(state, RecordExportFormat.json),
+          ),
+          _Row(
+            icon: '📤',
+            color: context.palette.infoBg,
+            title: '导出 CSV 表格',
+            subtitle: '可用 Excel、Numbers 等表格软件打开',
+            onTap: () => _exportRecords(state, RecordExportFormat.csv),
+          ),
+          _Row(
+            icon: '💾',
+            color: context.palette.warningBg,
+            title: '本地 SQLite 数据库',
+            subtitle: '${state.totalRecords} 条记录 · 点击查看文件位置',
+            onTap: () => Get.dialog(
+              AlertDialog(
+                title: const Text('本地数据位置'),
+                content: SelectableText(state.database.location),
+                actions: [
+                  TextButton(onPressed: Get.back, child: const Text('知道了')),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      _Group(
+        children: [
+          _Row(
+            icon: state.themeMode.value == ThemeMode.dark ? '🌙' : '☀️',
+            color: context.palette.primaryBg,
+            title: '外观主题',
+            subtitle: switch (state.themeMode.value) {
+              ThemeMode.light => '当前：浅色',
+              ThemeMode.dark => '当前：深色',
+              ThemeMode.system => '当前：跟随系统',
+            },
+            onTap: () async {
+              final mode = state.themeMode.value;
+              final picked = await Get.dialog<ThemeMode>(
+                AlertDialog(
+                  title: const Text('外观主题'),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _ThemeOption(
+                        mode: ThemeMode.system,
+                        current: mode,
+                        label: '跟随系统',
+                        icon: '⚙️',
+                      ),
+                      _ThemeOption(
+                        mode: ThemeMode.light,
+                        current: mode,
+                        label: '浅色',
+                        icon: '☀️',
+                      ),
+                      _ThemeOption(
+                        mode: ThemeMode.dark,
+                        current: mode,
+                        label: '深色',
+                        icon: '🌙',
+                      ),
+                    ],
+                  ),
+                ),
+              );
+              if (picked != null) await state.setThemeMode(picked);
+            },
+          ),
+        ],
+      ),
+    ];
+  }
+
+  Widget _buildFooter(
+    BuildContext context,
+    Responsive r, {
+    required bool center,
+  }) {
+    return Padding(
+      padding: r.padFromLTRB(1.6, 0.6, 1.6, 0),
+      child: Text(
+        '航班打卡 · 纯本地版\n不上传、不登录、不联网',
+        textAlign: center ? TextAlign.center : TextAlign.left,
+        style: TextStyle(
+          fontSize: r.textXs,
+          color: context.palette.textLight,
+          height: 1.6,
+        ),
+      ),
     );
   }
 
@@ -332,6 +440,162 @@ class ProfileScreen extends StatelessWidget {
     } catch (error) {
       Get.snackbar('导出失败', '$error', snackPosition: SnackPosition.BOTTOM);
     }
+  }
+}
+
+class _ProfilePageHeader extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final bool desktop;
+
+  const _ProfilePageHeader({
+    required this.title,
+    required this.subtitle,
+    this.desktop = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final r = context.r;
+    return Row(
+      children: [
+        Container(
+          width: r.touchTarget * (desktop ? 1.25 : 1.05),
+          height: r.touchTarget * (desktop ? 1.25 : 1.05),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [AppColors.accent, AppColors.primary],
+            ),
+            borderRadius: BorderRadius.circular(r.radiusLg),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.20),
+                blurRadius: 16,
+                offset: const Offset(0, 7),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Icon(
+            Icons.person_rounded,
+            color: Colors.white,
+            size: r.iconLg,
+          ),
+        ),
+        SizedBox(width: r.gapSm),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: desktop ? r.text3xl : r.text2xl,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.8,
+              ),
+            ),
+            SizedBox(height: r.gap2xs),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontSize: r.textXs,
+                color: context.palette.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final String text;
+
+  const _SectionLabel({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    final r = context.r;
+    return Padding(
+      padding: r.padFromLTRB(1.4, 0.2, 1.4, 0.6),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: r.textLg, fontWeight: FontWeight.w700),
+      ),
+    );
+  }
+}
+
+class _StorageSummaryCard extends StatelessWidget {
+  final AppState state;
+
+  const _StorageSummaryCard({required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    final r = context.r;
+    return Container(
+      margin: r.padH(1.4),
+      padding: r.padAll(1.0),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            context.palette.card,
+            Color.lerp(context.palette.card, AppColors.primary, 0.08)!,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(r.radiusLg),
+        border: Border.all(
+          color: context.palette.border.withValues(alpha: 0.52),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: r.touchTarget,
+            height: r.touchTarget,
+            decoration: BoxDecoration(
+              color: context.palette.primaryBg,
+              borderRadius: BorderRadius.circular(r.radiusSm),
+            ),
+            alignment: Alignment.center,
+            child: Icon(
+              Icons.storage_rounded,
+              color: AppColors.primary,
+              size: r.iconMd,
+            ),
+          ),
+          SizedBox(width: r.gapSm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '本地数据空间',
+                  style: TextStyle(
+                    fontSize: r.textSm,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                SizedBox(height: r.gap2xs),
+                Text(
+                  '${state.totalRecords} 条记录 · 全部保存在 SQLite',
+                  style: TextStyle(
+                    fontSize: r.textXs,
+                    color: context.palette.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

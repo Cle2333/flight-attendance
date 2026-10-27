@@ -111,11 +111,17 @@ class CalendarWidget extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          DateFormatters.monthLabel(currentDate),
-          style: TextStyle(fontSize: r.textMd, fontWeight: FontWeight.w600),
+        Expanded(
+          child: Text(
+            DateFormatters.monthLabel(currentDate),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontSize: r.textMd, fontWeight: FontWeight.w600),
+          ),
         ),
+        SizedBox(width: r.gapSm),
         Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             _navBtn(context, '‹', () => onMonthChanged(-1)),
             SizedBox(width: r.gapXs),
@@ -222,94 +228,100 @@ class CalendarWidget extends StatelessWidget {
     final daysInMonth = DateTime(year, month + 1, 0).day;
     final today = DateTime.now();
     final labels = ['一', '二', '三', '四', '五', '六', '日'];
-    final cellSize = r.gapLg * 2.0; // 日历单元格高度
-
-    return Column(
-      children: [
-        Row(
-          children: labels
-              .map(
-                (l) => Expanded(
-                  child: Center(
-                    child: Text(
-                      l,
-                      style: TextStyle(
-                        fontSize: r.textXs,
-                        color: context.palette.textLight,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ),
-              )
-              .toList(),
-        ),
-        SizedBox(height: r.gapXs * 0.5),
-        ...List.generate(6, (row) {
-          return Row(
-            children: List.generate(7, (col) {
-              final idx = row * 7 + col;
-              final day = idx - firstWeekday + 1;
-              if (day < 1 || day > daysInMonth) {
-                return Expanded(child: SizedBox(height: cellSize));
-              }
-              final d = DateTime(year, month, day);
-              final isToday = isSameDay(d, today);
-              final marked = hasRecordOn(d);
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () => onDateTapped(d),
-                  behavior: HitTestBehavior.opaque,
-                  child: Container(
-                    height: cellSize,
-                    alignment: Alignment.center,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Container(
-                          width: cellSize * 0.85,
-                          height: cellSize * 0.85,
-                          decoration: BoxDecoration(
-                            color: isToday ? AppColors.primary : null,
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            '$day',
-                            style: TextStyle(
-                              fontSize: r.textSm,
-                              fontWeight: isToday
-                                  ? FontWeight.w600
-                                  : FontWeight.w400,
-                              color: isToday
-                                  ? Colors.white
-                                  : context.palette.text,
-                            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cellSize = (constraints.maxWidth / 7 - 4).clamp(
+          24.0,
+          r.gapLg * 2.0,
+        );
+        return Column(
+          children: [
+            Row(
+              children: labels
+                  .map(
+                    (l) => Expanded(
+                      child: Center(
+                        child: Text(
+                          l,
+                          style: TextStyle(
+                            fontSize: r.textXs,
+                            color: context.palette.textLight,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
-                        if (marked)
-                          Positioned(
-                            bottom: cellSize * 0.1,
-                            child: Container(
-                              width: r.dotSm,
-                              height: r.dotSm,
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+            SizedBox(height: r.gapXs * 0.5),
+            ...List.generate(6, (row) {
+              return Row(
+                children: List.generate(7, (col) {
+                  final idx = row * 7 + col;
+                  final day = idx - firstWeekday + 1;
+                  if (day < 1 || day > daysInMonth) {
+                    return Expanded(child: SizedBox(height: cellSize));
+                  }
+                  final d = DateTime(year, month, day);
+                  final isToday = isSameDay(d, today);
+                  final marked = hasRecordOn(d);
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () => onDateTapped(d),
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        height: cellSize,
+                        alignment: Alignment.center,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Container(
+                              width: cellSize * 0.85,
+                              height: cellSize * 0.85,
                               decoration: BoxDecoration(
+                                color: isToday ? AppColors.primary : null,
                                 shape: BoxShape.circle,
-                                color: isToday
-                                    ? Colors.white
-                                    : AppColors.primary,
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                '$day',
+                                style: TextStyle(
+                                  fontSize: r.textSm,
+                                  fontWeight: isToday
+                                      ? FontWeight.w600
+                                      : FontWeight.w400,
+                                  color: isToday
+                                      ? Colors.white
+                                      : context.palette.text,
+                                ),
                               ),
                             ),
-                          ),
-                      ],
+                            if (marked)
+                              Positioned(
+                                bottom: cellSize * 0.1,
+                                child: Container(
+                                  width: r.dotSm,
+                                  height: r.dotSm,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: isToday
+                                        ? Colors.white
+                                        : AppColors.primary,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                }),
               );
             }),
-          );
-        }),
-      ],
+          ],
+        );
+      },
     );
   }
 }

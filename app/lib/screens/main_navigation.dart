@@ -4,12 +4,13 @@ import 'package:get/get.dart';
 import '../state/controllers/navigation_controller.dart';
 import '../utils/responsive.dart';
 import '../widgets/glass_page_switcher.dart';
+import 'desktop_sidebar.dart';
 import 'home_screen.dart';
 import 'main_dock.dart';
 import 'profile_screen.dart';
 import 'records_screen.dart';
 
-/// App 主壳：3 个本地功能 tab 的玻璃过渡页 + 液体玻璃 dock。
+/// App 主壳：宽屏使用液体玻璃侧边栏，窄屏使用底部液体玻璃 dock。
 class MainNavigation extends StatelessWidget {
   const MainNavigation({super.key});
 
@@ -24,24 +25,61 @@ class MainNavigation extends StatelessWidget {
     final nav = Get.put(NavigationController());
     final r = context.r;
 
+    return Obx(() {
+      final index = nav.selectedIndex.value;
+      if (r.isDesktop) {
+        return _buildDesktop(context, r, nav, index);
+      }
+      return _buildMobile(context, r, nav, index);
+    });
+  }
+
+  Widget _buildDesktop(
+    BuildContext context,
+    Responsive r,
+    NavigationController nav,
+    int index,
+  ) {
+    final sidebarWidth = (r.width * 0.18).clamp(216.0, 250.0).toDouble();
+    return Scaffold(
+      backgroundColor: r.palette.bg,
+      body: Row(
+        children: [
+          SafeArea(
+            right: false,
+            bottom: false,
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(r.gapLg, r.gapLg, 0, r.gapLg),
+              child: SizedBox(
+                width: sidebarWidth,
+                child: DesktopSidebar(index: index, onChanged: nav.select),
+              ),
+            ),
+          ),
+          Expanded(
+            child: GlassPageSwitcher(index: index, children: _screens),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobile(
+    BuildContext context,
+    Responsive r,
+    NavigationController nav,
+    int index,
+  ) {
     return Scaffold(
       extendBody: false,
       backgroundColor: r.palette.bg,
-      body: Obx(
-        () => GlassPageSwitcher(
-          index: nav.selectedIndex.value,
-          children: _screens,
-        ),
-      ),
+      body: GlassPageSwitcher(index: index, children: _screens),
       bottomNavigationBar: SafeArea(
         top: false,
         child: CenteredFrame(
           maxWidth: r.compactPanelMaxWidth,
           padding: EdgeInsets.only(bottom: r.gapSm),
-          child: Obx(
-            () =>
-                MainDock(index: nav.selectedIndex.value, onChanged: nav.select),
-          ),
+          child: MainDock(index: index, onChanged: nav.select),
         ),
       ),
     );
