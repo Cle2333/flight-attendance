@@ -58,7 +58,7 @@ class AchievementGrid extends StatelessWidget {
           SizedBox(height: r.gapSm),
           LayoutBuilder(
             builder: (context, constraints) {
-              final columns = constraints.maxWidth < 500 ? 1 : 2;
+              final columns = embedded && constraints.maxWidth < 480 ? 1 : 2;
               final cardWidth =
                   (constraints.maxWidth - r.gapSm * (columns - 1)) / columns;
               return Wrap(

@@ -24,7 +24,8 @@ class LocalAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final file = imagePath == null ? null : File(imagePath!);
-    final hasImage = file != null && file.existsSync();
+    final hasImage = file != null;
+    final cacheSize = (size * MediaQuery.devicePixelRatioOf(context)).round();
 
     return Container(
       width: size,
@@ -45,6 +46,8 @@ class LocalAvatar extends StatelessWidget {
                 file,
                 key: ValueKey(imagePath),
                 fit: BoxFit.cover,
+                cacheWidth: cacheSize,
+                cacheHeight: cacheSize,
                 gaplessPlayback: true,
                 errorBuilder: (context, error, stackTrace) =>
                     _Placeholder(iconSize: iconSize),

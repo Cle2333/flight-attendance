@@ -93,7 +93,7 @@ class MonthlyReportCard extends StatelessWidget {
                   label: '平均起飞时间',
                 ),
               ];
-              if (constraints.maxWidth < 480) {
+              if (embedded && constraints.maxWidth < 480) {
                 return Column(
                   children: [
                     for (var i = 0; i < cards.length; i++) ...[

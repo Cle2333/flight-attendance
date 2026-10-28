@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flight_attendance_app/data/app_database.dart';
 import 'package:flight_attendance_app/data/database_factory.dart';
 import 'package:flight_attendance_app/data/legacy_migration.dart';
+import 'package:flight_attendance_app/services/avatar_service.dart';
 import 'package:flight_attendance_app/data/record_transfer.dart';
 import 'package:flight_attendance_app/models/profile.dart';
 import 'package:flight_attendance_app/models/record.dart';
@@ -135,6 +136,36 @@ void main() {
     expect((await database.loadRecords()).length, 1);
   });
 
+  test('取消头像选择不写入资料', () async {
+    final state = AppState(
+      database: database,
+      avatarService: _CancelAvatarService(),
+    );
+    await state.bootstrap();
+    final before = state.profile.value!.avatarPath;
+
+    final result = await state.chooseAvatar();
+
+    expect(result, isNull);
+    expect(state.profile.value!.avatarPath, before);
+    expect(state.avatarDisplayPath.value, isNull);
+  });
+
+  test('头像落库保存相对路径并解析为展示路径', () async {
+    final state = AppState(
+      database: database,
+      avatarService: _ResultAvatarService(),
+    );
+    await state.bootstrap();
+
+    final displayPath = await state.chooseAvatar();
+
+    expect(displayPath, 'C:/app-data/avatars/new.png');
+    expect(state.profile.value!.avatarPath, 'avatars/new.png');
+    expect(state.avatarDisplayPath.value, displayPath);
+    expect((await database.loadProfile())!.avatarPath, 'avatars/new.png');
+  });
+
   test('导入后立即刷新记录和倒计时', () async {
     final state = AppState(database: database);
     await state.bootstrap();
@@ -151,4 +182,21 @@ void main() {
     expect(state.lastTakeoff.value, imported.time);
     expect(RecordTransfer.encodeJson(state.records), contains('导入记录'));
   });
+}
+
+class _CancelAvatarService extends AvatarService {
+  @override
+  Future<String?> pickAndStore() async => null;
+}
+
+class _ResultAvatarService extends AvatarService {
+  @override
+  Future<String?> pickAndStore() async => 'avatars/new.png';
+
+  @override
+  Future<String> resolvePath(String storedPath) async =>
+      'C:/app-data/$storedPath';
+
+  @override
+  Future<void> deleteManagedFile(String? storedPath) async {}
 }

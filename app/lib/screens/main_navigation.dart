@@ -29,7 +29,7 @@ class MainNavigation extends StatelessWidget {
 
     return Obx(() {
       final index = nav.selectedIndex.value;
-      final avatarPath = state.profile.value?.avatarPath;
+      final avatarPath = state.avatarDisplayPath.value;
       if (r.isDesktop) {
         return _buildDesktop(context, r, nav, index, avatarPath);
       }

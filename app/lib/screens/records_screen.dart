@@ -242,7 +242,7 @@ class RecordsScreen extends StatelessWidget {
                       children: [
                         Obx(() => _buildDesktopCalendar(context, ctrl, state)),
                         SizedBox(height: r.gapMd),
-                        const _SectionLabel(text: '快速统计'),
+                        const _SectionLabel(text: '快速统计', flush: true),
                         _buildQuickStats(
                           context,
                           state,
@@ -482,14 +482,17 @@ class _RecordsPageHeader extends StatelessWidget {
 
 class _SectionLabel extends StatelessWidget {
   final String text;
+  final bool flush;
 
-  const _SectionLabel({required this.text});
+  const _SectionLabel({required this.text, this.flush = false});
 
   @override
   Widget build(BuildContext context) {
     final r = context.r;
     return Padding(
-      padding: r.padFromLTRB(1.4, 0.2, 1.4, 0.6),
+      padding: flush
+          ? EdgeInsets.only(bottom: r.gapXs)
+          : r.padFromLTRB(1.4, 0.2, 1.4, 0.6),
       child: Text(
         text,
         style: TextStyle(fontSize: r.textLg, fontWeight: FontWeight.w700),

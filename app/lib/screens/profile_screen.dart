@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -22,7 +24,7 @@ class ProfileScreen extends StatelessWidget {
       bottom: false,
       child: Obx(() {
         final profile = state.profile.value ?? const LocalProfile();
-        final avatarPath = profile.avatarPath;
+        final avatarPath = state.avatarDisplayPath.value;
         final nickname = profile.nickname;
 
         if (r.isDesktop) {
@@ -425,7 +427,12 @@ class ProfileScreen extends StatelessWidget {
       if (path == null) return;
       Get.snackbar('头像已更新', '头像图片已保存到本机', snackPosition: SnackPosition.BOTTOM);
     } catch (error) {
-      Get.snackbar('头像上传失败', '$error', snackPosition: SnackPosition.BOTTOM);
+      final message = switch (error) {
+        FormatException(:final message) => message,
+        FileSystemException(:final message) => message,
+        _ => '请选择 10 MB 以内的 PNG、JPG、WEBP 或 BMP 图片',
+      };
+      Get.snackbar('头像上传失败', message, snackPosition: SnackPosition.BOTTOM);
     }
   }
 

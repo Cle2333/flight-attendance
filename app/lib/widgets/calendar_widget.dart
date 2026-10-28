@@ -10,6 +10,11 @@ import '../utils/responsive.dart';
 /// (用 `ValueNotifier<bool>`),月份切换通过 [onMonthChanged] 回调,
 /// 日期标记通过 [hasRecordOn] 闭包,日期点击通过 [onDateTapped] 回调。
 class CalendarWidget extends StatelessWidget {
+  static const _compactBreakpoint = 380.0;
+  static const _compactPadding = 12.0;
+  static const _compactMinCell = 22.0;
+  static const _compactMaxCell = 36.0;
+
   final DateTime currentDate;
   final ValueChanged<int> onMonthChanged; // -1: prev month, +1: next month
   final bool Function(DateTime) hasRecordOn;
@@ -46,10 +51,12 @@ class CalendarWidget extends StatelessWidget {
     final expanded = expandedNotifier ?? _defaultExpanded;
     return LayoutBuilder(
       builder: (context, constraints) {
-        final compact = constraints.maxWidth < 380;
+        final compact = constraints.maxWidth < _compactBreakpoint;
         return Container(
-          margin: embedded || compact ? EdgeInsets.zero : r.padH(1.4),
-          padding: compact ? const EdgeInsets.all(12) : r.padAll(1.125),
+          margin: embedded ? EdgeInsets.zero : r.padH(1.4),
+          padding: compact
+              ? const EdgeInsets.all(_compactPadding)
+              : r.padAll(1.125),
           decoration: BoxDecoration(
             color: context.palette.card,
             borderRadius: BorderRadius.circular(r.radiusLg),
@@ -148,22 +155,29 @@ class CalendarWidget extends StatelessWidget {
     required bool compact,
   }) {
     final r = context.r;
+    final visualSize = r.touchTarget * (compact ? 0.68 : 0.85);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(r.radiusLg),
-      child: Container(
-        width: r.touchTarget * (compact ? 0.68 : 0.85),
-        height: r.touchTarget * (compact ? 0.68 : 0.85),
-        decoration: BoxDecoration(
-          border: Border.all(color: context.palette.border),
-          shape: BoxShape.circle,
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: TextStyle(
-            color: context.palette.textSecondary,
-            fontSize: compact ? r.textSm : r.textBase,
+      child: SizedBox(
+        width: r.touchTarget,
+        height: r.touchTarget,
+        child: Center(
+          child: Container(
+            width: visualSize,
+            height: visualSize,
+            decoration: BoxDecoration(
+              border: Border.all(color: context.palette.border),
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              label,
+              style: TextStyle(
+                color: context.palette.textSecondary,
+                fontSize: compact ? r.textSm : r.textBase,
+              ),
+            ),
           ),
         ),
       ),
@@ -245,8 +259,8 @@ class CalendarWidget extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final cellSize = (constraints.maxWidth / 7 - 4).clamp(
-          compact ? 22.0 : 24.0,
-          compact ? 36.0 : r.gapLg * 2.0,
+          compact ? _compactMinCell : 24.0,
+          compact ? _compactMaxCell : r.gapLg * 2.0,
         );
         return Column(
           children: [

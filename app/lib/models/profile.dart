@@ -19,8 +19,12 @@ class LocalProfile {
     if (avatarPath != null) 'avatar_path': avatarPath,
   };
 
-  LocalProfile copyWith({String? nickname, String? avatarPath}) => LocalProfile(
+  LocalProfile copyWith({
+    String? nickname,
+    String? avatarPath,
+    bool clearAvatarPath = false,
+  }) => LocalProfile(
     nickname: nickname ?? this.nickname,
-    avatarPath: avatarPath ?? this.avatarPath,
+    avatarPath: clearAvatarPath ? null : avatarPath ?? this.avatarPath,
   );
 }

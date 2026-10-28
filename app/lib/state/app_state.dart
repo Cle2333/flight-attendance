@@ -25,6 +25,7 @@ class AppState extends GetxController {
   final RxBool booted = false.obs;
   final Rxn<String> startupError = Rxn<String>();
   final Rxn<LocalProfile> profile = Rxn<LocalProfile>();
+  final Rxn<String> avatarDisplayPath = Rxn<String>();
   final RxList<FlightRecord> records = <FlightRecord>[].obs;
   final Rx<AppSettings> settings = const AppSettings().obs;
   final Rx<ThemeMode> themeMode = ThemeMode.system.obs;
@@ -34,6 +35,7 @@ class AppState extends GetxController {
     try {
       final loadedProfile = await database.loadProfile();
       profile.value = loadedProfile ?? const LocalProfile();
+      await _refreshAvatarDisplayPath();
       if (loadedProfile == null) {
         await database.saveProfile(profile.value!);
       }
@@ -119,16 +121,29 @@ class AppState extends GetxController {
   }
 
   Future<String?> chooseAvatar() async {
-    final path = await avatarService.pickAndStore(
-      previousPath: profile.value?.avatarPath,
-    );
-    if (path == null) return null;
+    final previousStoredPath = profile.value?.avatarPath;
+    final newStoredPath = await avatarService.pickAndStore();
+    if (newStoredPath == null) return null;
     final updated = (profile.value ?? const LocalProfile()).copyWith(
-      avatarPath: path,
+      avatarPath: newStoredPath,
     );
+    try {
+      await database.saveProfile(updated);
+    } catch (_) {
+      await avatarService.deleteManagedFile(newStoredPath);
+      rethrow;
+    }
     profile.value = updated;
-    await database.saveProfile(updated);
-    return path;
+    avatarDisplayPath.value = await avatarService.resolvePath(newStoredPath);
+    await avatarService.deleteManagedFile(previousStoredPath);
+    return avatarDisplayPath.value;
+  }
+
+  Future<void> _refreshAvatarDisplayPath() async {
+    final storedPath = profile.value?.avatarPath;
+    avatarDisplayPath.value = storedPath == null
+        ? null
+        : await avatarService.resolvePath(storedPath);
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
