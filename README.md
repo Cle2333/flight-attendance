@@ -4,6 +4,16 @@
 
 > 不联网、不登录、无排行榜、无云端同步。应用运行不依赖服务器。
 
+## 下载
+
+前往 [GitHub Releases](https://github.com/Cle2333/flight-attendance/releases/latest) 下载最新版本：
+
+- Windows：`flight-attendance-windows-x64-*.zip`，解压后运行 `flight_attendance_app.exe`
+- Linux：优先使用 `flight-attendance-linux-amd64-*.deb`；其他发行版可使用 `flight-attendance-linux-x64-*.tar.gz`
+- Android：`flight-attendance-android-*.apk`
+
+每个版本同时提供 `SHA256SUMS.txt` 用于校验安装包完整性。
+
 ## 功能
 
 - **双击起飞**：记录当前时间、感受和起飞特效

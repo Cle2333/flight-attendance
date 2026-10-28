@@ -3,6 +3,7 @@ name: Build & Release
 on:
   push:
     tags: ['v*']
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -60,11 +61,19 @@ jobs:
       - name: Build release APK
         working-directory: app
         run: flutter build apk --release
+      - name: Prepare versioned APK
+        working-directory: app
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          VERSION="${TAG_NAME#v}"
+          cp build/app/outputs/flutter-apk/app-release.apk \
+            "build/app/outputs/flutter-apk/flight-attendance-android-${VERSION}.apk"
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/build/app/outputs/flutter-apk/app-release.apk
+          path: app/build/app/outputs/flutter-apk/flight-attendance-android-*.apk
           if-no-files-found: error
           retention-days: 30
       - name: Upload mapping
@@ -97,7 +106,7 @@ jobs:
       - name: Build Linux release
         working-directory: app
         run: flutter build linux --release
-      - name: Package as .deb
+      - name: Package Linux releases
         working-directory: app
         env:
           TAG_NAME: ${{ github.ref_name }}
@@ -105,19 +114,38 @@ jobs:
           set -e
           VERSION="${TAG_NAME#v}"
           APP=flight-attendance-app
+          DIST="${GITHUB_WORKSPACE}/dist/linux"
           STAGE="${RUNNER_TEMP}/debroot"
           BUNDLE=build/linux/x64/release/bundle
-          rm -rf "$STAGE"
-          mkdir -p "$STAGE/DEBIAN" "$STAGE/opt/${APP}"
+          PORTABLE="${RUNNER_TEMP}/${APP}-${VERSION}"
+          rm -rf "$STAGE" "$PORTABLE" "$DIST"
+          mkdir -p "$STAGE/DEBIAN" "$STAGE/opt/${APP}" \
+            "$STAGE/usr/share/applications" \
+            "$STAGE/usr/share/icons/hicolor/512x512/apps" \
+            "$PORTABLE" "$DIST"
           cp -r "${BUNDLE}/"* "$STAGE/opt/${APP}/"
+          cp -r "${BUNDLE}/"* "$PORTABLE/"
+          cp web/icons/Icon-512.png \
+            "$STAGE/usr/share/icons/hicolor/512x512/apps/${APP}.png"
+          cat > "$STAGE/usr/share/applications/${APP}.desktop" <<EOF
+          [Desktop Entry]
+          Name=航班打卡
+          Comment=纯本地记录每一次起飞
+          Exec=/opt/${APP}/flight_attendance_app
+          Icon=${APP}
+          Terminal=false
+          Type=Application
+          Categories=Utility;
+          StartupWMClass=flight_attendance_app
+          EOF
           cat > "$STAGE/DEBIAN/control" <<EOF
           Package: ${APP}
           Version: ${VERSION}
           Section: utils
           Priority: optional
           Architecture: amd64
-          Maintainer: cmach_socket <cmach_socket@outlook.com>
-          Depends: libgtk-3-0, liblzma5, libsqlite3-0
+          Maintainer: Cle2333 <Cle2333@users.noreply.github.com>
+          Depends: libgtk-3-0 | libgtk-3-0t64, liblzma5, libsqlite3-0, libstdc++6
           Description: 航班打卡 - 纯本地记录每一次起飞
           EOF
           cat > "$STAGE/DEBIAN/postinst" <<'EOS'
@@ -125,6 +153,8 @@ jobs:
           set -e
           chmod +x /opt/flight-attendance-app/flight_attendance_app
           ln -sf /opt/flight-attendance-app/flight_attendance_app /usr/local/bin/flight-attendance-app
+          command -v update-desktop-database >/dev/null 2>&1 && update-desktop-database /usr/share/applications || true
+          command -v gtk-update-icon-cache >/dev/null 2>&1 && gtk-update-icon-cache -q /usr/share/icons/hicolor || true
           EOS
           chmod 755 "$STAGE/DEBIAN/postinst"
           cat > "$STAGE/DEBIAN/prerm" <<'EOS'
@@ -133,15 +163,15 @@ jobs:
           rm -f /usr/local/bin/flight-attendance-app
           EOS
           chmod 755 "$STAGE/DEBIAN/prerm"
-          OUT="${APP}_${VERSION}_amd64.deb"
-          dpkg-deb --build --root-owner-group "$STAGE" "$OUT"
-          mkdir -p build/linux/x64/release
-          cp "$OUT" build/linux/x64/release/
-      - name: Upload .deb
+          DEB="${DIST}/${APP}-linux-amd64-${VERSION}.deb"
+          TARBALL="${DIST}/${APP}-linux-x64-${VERSION}.tar.gz"
+          dpkg-deb --build --root-owner-group "$STAGE" "$DEB"
+          tar -C "${RUNNER_TEMP}" -czf "$TARBALL" "${APP}-${VERSION}"
+      - name: Upload Linux packages
         uses: actions/upload-artifact@v4
         with:
           name: app-linux
-          path: app/build/linux/x64/release/flight-attendance-app_*_amd64.deb
+          path: dist/linux/*
           if-no-files-found: error
           retention-days: 30
 
@@ -163,13 +193,21 @@ jobs:
         run: flutter build windows --release
       - name: Zip bundle
         shell: pwsh
-        working-directory: app/build/windows/x64/runner/Release
-        run: Compress-Archive -Path ./* -DestinationPath ./flight-attendance-app-windows-x64.zip
+        working-directory: app
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          $version = $env:TAG_NAME.TrimStart('v')
+          $source = Join-Path $env:GITHUB_WORKSPACE 'app/build/windows/x64/runner/Release'
+          $dist = Join-Path $env:GITHUB_WORKSPACE 'dist/windows'
+          New-Item -ItemType Directory -Path $dist -Force | Out-Null
+          $archive = Join-Path $dist "flight-attendance-windows-x64-$version.zip"
+          Compress-Archive -Path (Join-Path $source '*') -DestinationPath $archive -Force
       - name: Upload Windows archive
         uses: actions/upload-artifact@v4
         with:
           name: app-windows
-          path: app/build/windows/x64/runner/Release/flight-attendance-app-windows-x64.zip
+          path: dist/windows/*.zip
           if-no-files-found: error
           retention-days: 30
 
@@ -183,7 +221,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: app-release
-          path: dist/app
+          path: dist/app/android
       - name: Download Linux package
         uses: actions/download-artifact@v4
         with:
@@ -194,13 +232,40 @@ jobs:
         with:
           name: app-windows
           path: dist/app/windows
+      - name: Prepare checksums and release notes
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -e
+          VERSION="${TAG_NAME#v}"
+          cd dist
+          find app -type f -print0 | sort -z | xargs -0 sha256sum | sed 's#  app/#  #' > SHA256SUMS.txt
+          cat > release-notes.md <<EOF
+          ## 航班打卡 ${TAG_NAME}
+
+          纯本地 Flutter 版本，数据保存在设备本机 SQLite 中，不联网、不登录、无排行榜。
+
+          ### 下载
+
+          - **Windows x64**：\`flight-attendance-windows-x64-${VERSION}.zip\`，解压后运行 \`flight_attendance_app.exe\`
+          - **Linux x64**：\`flight-attendance-linux-amd64-${VERSION}.deb\` 或 \`flight-attendance-linux-x64-${VERSION}.tar.gz\`
+          - **Android**：\`flight-attendance-android-${VERSION}.apk\`
+          - **校验文件**：\`SHA256SUMS.txt\`
+
+          Android APK 使用仓库当前配置生成；若未配置正式签名密钥，将使用 Flutter 默认测试签名。安装前请保留旧数据备份。
+
+          完整提交记录：https://github.com/${REPOSITORY}/commits/${TAG_NAME}
+          EOF
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ github.ref_name }}
-          generate_release_notes: true
+          name: 航班打卡 ${{ github.ref_name }}
+          body_path: dist/release-notes.md
           fail_on_unmatched_files: true
           files: |
-            dist/app/app-release.apk
-            dist/app/linux/flight-attendance-app_*.deb
-            dist/app/windows/flight-attendance-app-windows-x64.zip
+            dist/app/android/*.apk
+            dist/app/linux/*.deb
+            dist/app/linux/*.tar.gz
+            dist/app/windows/*.zip
+            dist/SHA256SUMS.txt
