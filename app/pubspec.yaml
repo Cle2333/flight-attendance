@@ -19,6 +19,7 @@ dependencies:
   sqflite_common_ffi: ^2.3.6
   sqlite3_flutter_libs: ^0.5.39
   path: ^1.9.1
+  path_provider: ^2.1.5
 
   # 导入导出文件选择
   file_selector: ^1.0.3

@@ -36,6 +36,34 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('日历在窄栏展开月视图仍可完整渲染', (tester) async {
+    await _setSize(tester, const Size(360, 720));
+    final expanded = ValueNotifier(true);
+    addTearDown(expanded.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: SizedBox(
+              width: 300,
+              child: CalendarWidget(
+                currentDate: DateTime.now(),
+                onMonthChanged: _noop,
+                hasRecordOn: (_) => true,
+                onDateTapped: (_) {},
+                expandedNotifier: expanded,
+                embedded: true,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('收起月视图'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('记录组件在较窄桌面下自动缩放日历且无溢出', (tester) async {
     await _setSize(tester, const Size(1024, 760));
     await tester.pumpWidget(_recordsPreview(desktop: true));
@@ -93,23 +121,13 @@ Widget _recordsPreview({required bool desktop}) {
   final left = Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      LayoutBuilder(
-        builder: (context, constraints) {
-          const designWidth = 430.0;
-          final calendar = CalendarWidget(
-            currentDate: DateTime.now(),
-            onMonthChanged: _noop,
-            hasRecordOn: (_) => true,
-            onDateTapped: (_) {},
-            expandedNotifier: ValueNotifier(false),
-          );
-          if (constraints.maxWidth >= designWidth) return calendar;
-          return FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.topCenter,
-            child: SizedBox(width: designWidth, child: calendar),
-          );
-        },
+      CalendarWidget(
+        currentDate: DateTime.now(),
+        onMonthChanged: _noop,
+        hasRecordOn: (_) => true,
+        onDateTapped: (_) {},
+        expandedNotifier: ValueNotifier(false),
+        embedded: true,
       ),
       const SizedBox(height: 16),
       const Padding(
@@ -145,9 +163,9 @@ Widget _recordsPreview({required bool desktop}) {
   final right = Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      MonthlyReportCard(report: report),
+      MonthlyReportCard(report: report, embedded: true),
       const SizedBox(height: 16),
-      AchievementGrid(achievements: achievements),
+      AchievementGrid(achievements: achievements, embedded: true),
       const SizedBox(height: 16),
       Container(
         margin: const EdgeInsets.symmetric(horizontal: 20),

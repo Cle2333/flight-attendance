@@ -27,11 +27,16 @@ class MonthlyBarChart extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text(
-              '每日起飞次数',
-              style: TextStyle(fontSize: r.textMd, fontWeight: FontWeight.w700),
+            Expanded(
+              child: Text(
+                '每日起飞次数',
+                style: TextStyle(
+                  fontSize: r.textMd,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
-            const Spacer(),
+            SizedBox(width: r.gapXs),
             Text(
               maxCount == 0 ? '暂无数据' : '单日最高 $maxCount 次',
               style: TextStyle(
@@ -43,7 +48,7 @@ class MonthlyBarChart extends StatelessWidget {
         ),
         SizedBox(height: r.gapSm),
         SizedBox(
-          height: r.gapXl * 5.2,
+          height: (r.gapXl * 3.6).clamp(160.0, 220.0),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: List.generate(daysInMonth, (index) {

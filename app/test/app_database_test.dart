@@ -59,14 +59,16 @@ void main() {
 
   test('资料、设置和主题写入 app_meta', () async {
     await database.saveProfile(
-      const LocalProfile(nickname: '机长', avatar: '🧑‍✈️'),
+      const LocalProfile(nickname: '机长', avatarPath: 'C:/avatars/pilot.png'),
     );
     await database.saveSettings(
       const AppSettings(precision: 'minute', effectEmoji: '🚀'),
     );
     await database.saveThemeMode('dark');
 
-    expect((await database.loadProfile())!.nickname, '机长');
+    final profile = await database.loadProfile();
+    expect(profile!.nickname, '机长');
+    expect(profile.avatarPath, 'C:/avatars/pilot.png');
     expect((await database.loadSettings()).precision, 'minute');
     expect(await database.loadThemeMode(), 'dark');
   });

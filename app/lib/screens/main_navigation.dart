@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../state/app_state.dart';
 import '../state/controllers/navigation_controller.dart';
 import '../utils/responsive.dart';
 import '../widgets/glass_page_switcher.dart';
@@ -23,12 +24,14 @@ class MainNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final nav = Get.put(NavigationController());
+    final state = Get.find<AppState>();
     final r = context.r;
 
     return Obx(() {
       final index = nav.selectedIndex.value;
+      final avatarPath = state.profile.value?.avatarPath;
       if (r.isDesktop) {
-        return _buildDesktop(context, r, nav, index);
+        return _buildDesktop(context, r, nav, index, avatarPath);
       }
       return _buildMobile(context, r, nav, index);
     });
@@ -39,6 +42,7 @@ class MainNavigation extends StatelessWidget {
     Responsive r,
     NavigationController nav,
     int index,
+    String? avatarPath,
   ) {
     final sidebarWidth = (r.width * 0.18).clamp(216.0, 250.0).toDouble();
     return Scaffold(
@@ -52,7 +56,11 @@ class MainNavigation extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(r.gapLg, r.gapLg, 0, r.gapLg),
               child: SizedBox(
                 width: sidebarWidth,
-                child: DesktopSidebar(index: index, onChanged: nav.select),
+                child: DesktopSidebar(
+                  index: index,
+                  onChanged: nav.select,
+                  avatarPath: avatarPath,
+                ),
               ),
             ),
           ),

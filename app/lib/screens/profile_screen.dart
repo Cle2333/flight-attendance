@@ -7,6 +7,7 @@ import '../state/app_state.dart';
 import '../theme/app_theme.dart';
 import '../utils/formatters.dart';
 import '../utils/responsive.dart';
+import '../widgets/local_avatar.dart';
 import '../widgets/picker_modals.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -21,13 +22,13 @@ class ProfileScreen extends StatelessWidget {
       bottom: false,
       child: Obx(() {
         final profile = state.profile.value ?? const LocalProfile();
-        final avatar = profile.avatar;
+        final avatarPath = profile.avatarPath;
         final nickname = profile.nickname;
 
         if (r.isDesktop) {
-          return _buildDesktop(context, state, avatar, nickname, r);
+          return _buildDesktop(context, state, avatarPath, nickname, r);
         }
-        return _buildMobile(context, state, avatar, nickname, r);
+        return _buildMobile(context, state, avatarPath, nickname, r);
       }),
     );
   }
@@ -35,7 +36,7 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildMobile(
     BuildContext context,
     AppState state,
-    String avatar,
+    String? avatarPath,
     String nickname,
     Responsive r,
   ) {
@@ -49,9 +50,9 @@ class ProfileScreen extends StatelessWidget {
             subtitle: '本地资料、偏好与数据管理',
           ),
         ),
-        _buildIdentityCard(context, state, avatar, nickname, r),
+        _buildIdentityCard(context, state, avatarPath, nickname, r),
         SizedBox(height: r.gapMd),
-        ..._buildSettingsGroups(context, state, avatar, nickname),
+        ..._buildSettingsGroups(context, state, avatarPath, nickname),
         _buildFooter(context, r, center: true),
       ],
     );
@@ -60,12 +61,12 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildDesktop(
     BuildContext context,
     AppState state,
-    String avatar,
+    String? avatarPath,
     String nickname,
     Responsive r,
   ) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(r.gapLg, r.gapLg, r.gapLg, 0),
+      padding: EdgeInsets.fromLTRB(r.gapMd, r.gapMd, r.gapMd, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -74,7 +75,7 @@ class ProfileScreen extends StatelessWidget {
             subtitle: '本地资料、偏好与数据管理',
             desktop: true,
           ),
-          SizedBox(height: r.gapLg),
+          SizedBox(height: r.gapMd),
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -88,30 +89,31 @@ class ProfileScreen extends StatelessWidget {
                         _buildIdentityCard(
                           context,
                           state,
-                          avatar,
+                          avatarPath,
                           nickname,
                           r,
                           desktop: true,
                         ),
                         SizedBox(height: r.gapMd),
-                        _StorageSummaryCard(state: state),
+                        _StorageSummaryCard(state: state, embedded: true),
                       ],
                     ),
                   ),
                 ),
-                SizedBox(width: r.gapLg),
+                SizedBox(width: r.gapMd),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: EdgeInsets.only(bottom: r.gapLg),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const _SectionLabel(text: '设置'),
+                        const _SectionLabel(text: '设置', embedded: true),
                         ..._buildSettingsGroups(
                           context,
                           state,
-                          avatar,
+                          avatarPath,
                           nickname,
+                          embedded: true,
                         ),
                         _buildFooter(context, r, center: false),
                       ],
@@ -129,13 +131,13 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildIdentityCard(
     BuildContext context,
     AppState state,
-    String avatar,
+    String? avatarPath,
     String nickname,
     Responsive r, {
     bool desktop = false,
   }) {
     return Container(
-      margin: r.padH(1.4),
+      margin: desktop ? EdgeInsets.zero : r.padH(1.4),
       padding: r.padFromLTRB(1.4, desktop ? 1.7 : 1.6, 1.4, 1.4),
       decoration: BoxDecoration(
         color: context.palette.card,
@@ -154,29 +156,49 @@ class ProfileScreen extends StatelessWidget {
       child: Column(
         children: [
           GestureDetector(
-            onTap: () => Get.dialog(
-              AvatarPicker(current: avatar, onPick: state.updateAvatar),
-            ),
-            child: Container(
-              width: desktop ? r.avatarLg * 1.15 : r.avatarLg,
-              height: desktop ? r.avatarLg * 1.15 : r.avatarLg,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.accent, AppColors.primary],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+            onTap: () => _pickAvatar(state),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                LocalAvatar(
+                  imagePath: avatarPath,
+                  size: desktop ? r.avatarLg * 1.15 : r.avatarLg,
+                  iconSize: r.icon2xl,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.25),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.25),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
+                Positioned(
+                  right: -2,
+                  bottom: 2,
+                  child: Container(
+                    width: r.touchTarget * 0.75,
+                    height: r.touchTarget * 0.75,
+                    decoration: BoxDecoration(
+                      color: context.palette.card,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: context.palette.border),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.10),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.photo_camera_rounded,
+                      size: r.iconSm,
+                      color: AppColors.primary,
+                    ),
                   ),
-                ],
-              ),
-              alignment: Alignment.center,
-              child: Text(avatar, style: TextStyle(fontSize: r.text2xl * 1.4)),
+                ),
+              ],
             ),
           ),
           SizedBox(height: r.gapSm),
@@ -220,11 +242,13 @@ class ProfileScreen extends StatelessWidget {
   List<Widget> _buildSettingsGroups(
     BuildContext context,
     AppState state,
-    String avatar,
-    String nickname,
-  ) {
+    String? avatarPath,
+    String nickname, {
+    bool embedded = false,
+  }) {
     return [
       _Group(
+        embedded: embedded,
         children: [
           _Row(
             icon: '✏️',
@@ -238,15 +262,14 @@ class ProfileScreen extends StatelessWidget {
           _Row(
             icon: '🖼️',
             color: context.palette.infoBg,
-            title: '更换头像',
-            subtitle: '选择喜欢的头像',
-            onTap: () => Get.dialog(
-              AvatarPicker(current: avatar, onPick: state.updateAvatar),
-            ),
+            title: '上传头像',
+            subtitle: avatarPath == null ? '从本地选择图片' : '已使用本地图片',
+            onTap: () => _pickAvatar(state),
           ),
         ],
       ),
       _Group(
+        embedded: embedded,
         children: [
           _Row(
             icon: '⏱️',
@@ -287,6 +310,7 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
       _Group(
+        embedded: embedded,
         children: [
           _Row(
             icon: '📥',
@@ -327,6 +351,7 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
       _Group(
+        embedded: embedded,
         children: [
           _Row(
             icon: state.themeMode.value == ThemeMode.dark ? '🌙' : '☀️',
@@ -394,6 +419,16 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  Future<void> _pickAvatar(AppState state) async {
+    try {
+      final path = await state.chooseAvatar();
+      if (path == null) return;
+      Get.snackbar('头像已更新', '头像图片已保存到本机', snackPosition: SnackPosition.BOTTOM);
+    } catch (error) {
+      Get.snackbar('头像上传失败', '$error', snackPosition: SnackPosition.BOTTOM);
+    }
+  }
+
   Future<void> _importRecords(AppState state) async {
     try {
       final picked = await state.fileService.pickImportFile();
@@ -455,54 +490,25 @@ class _ProfilePageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final r = context.r;
-    return Row(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: r.touchTarget * (desktop ? 1.25 : 1.05),
-          height: r.touchTarget * (desktop ? 1.25 : 1.05),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppColors.accent, AppColors.primary],
-            ),
-            borderRadius: BorderRadius.circular(r.radiusLg),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.20),
-                blurRadius: 16,
-                offset: const Offset(0, 7),
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: Icon(
-            Icons.person_rounded,
-            color: Colors.white,
-            size: r.iconLg,
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: desktop ? r.text3xl : r.text2xl,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.8,
           ),
         ),
-        SizedBox(width: r.gapSm),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: desktop ? r.text3xl : r.text2xl,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.8,
-              ),
-            ),
-            SizedBox(height: r.gap2xs),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: r.textXs,
-                color: context.palette.textSecondary,
-              ),
-            ),
-          ],
+        SizedBox(height: r.gap2xs),
+        Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: r.textXs,
+            color: context.palette.textSecondary,
+          ),
         ),
       ],
     );
@@ -511,14 +517,17 @@ class _ProfilePageHeader extends StatelessWidget {
 
 class _SectionLabel extends StatelessWidget {
   final String text;
+  final bool embedded;
 
-  const _SectionLabel({required this.text});
+  const _SectionLabel({required this.text, this.embedded = false});
 
   @override
   Widget build(BuildContext context) {
     final r = context.r;
     return Padding(
-      padding: r.padFromLTRB(1.4, 0.2, 1.4, 0.6),
+      padding: embedded
+          ? EdgeInsets.only(bottom: r.gapXs)
+          : r.padFromLTRB(1.4, 0.2, 1.4, 0.6),
       child: Text(
         text,
         style: TextStyle(fontSize: r.textLg, fontWeight: FontWeight.w700),
@@ -529,14 +538,15 @@ class _SectionLabel extends StatelessWidget {
 
 class _StorageSummaryCard extends StatelessWidget {
   final AppState state;
+  final bool embedded;
 
-  const _StorageSummaryCard({required this.state});
+  const _StorageSummaryCard({required this.state, this.embedded = false});
 
   @override
   Widget build(BuildContext context) {
     final r = context.r;
     return Container(
-      margin: r.padH(1.4),
+      margin: embedded ? EdgeInsets.zero : r.padH(1.4),
       padding: r.padAll(1.0),
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -631,14 +641,17 @@ class _ProfileStat extends StatelessWidget {
 
 class _Group extends StatelessWidget {
   final List<Widget> children;
+  final bool embedded;
 
-  const _Group({required this.children});
+  const _Group({required this.children, this.embedded = false});
 
   @override
   Widget build(BuildContext context) {
     final r = context.r;
     return Container(
-      margin: r.padFromLTRB(1.4, 0.8, 1.4, 0),
+      margin: embedded
+          ? EdgeInsets.only(bottom: r.gapSm)
+          : r.padFromLTRB(1.4, 0.8, 1.4, 0),
       decoration: BoxDecoration(
         color: context.palette.card,
         borderRadius: BorderRadius.circular(r.radiusLg),

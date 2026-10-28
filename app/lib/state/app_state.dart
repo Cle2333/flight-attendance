@@ -6,15 +6,21 @@ import '../models/profile.dart';
 import '../models/record.dart';
 import '../models/record_statistics.dart';
 import '../models/settings.dart';
+import '../services/avatar_service.dart';
 import '../services/record_file_service.dart';
 
 /// 纯本地应用状态。所有写操作先落 SQLite，再同步内存状态。
 class AppState extends GetxController {
   final AppDatabase database;
   final RecordFileService fileService;
+  final AvatarService avatarService;
 
-  AppState({required this.database, RecordFileService? fileService})
-    : fileService = fileService ?? RecordFileService();
+  AppState({
+    required this.database,
+    RecordFileService? fileService,
+    AvatarService? avatarService,
+  }) : fileService = fileService ?? RecordFileService(),
+       avatarService = avatarService ?? AvatarService();
 
   final RxBool booted = false.obs;
   final Rxn<String> startupError = Rxn<String>();
@@ -112,13 +118,17 @@ class AppState extends GetxController {
     await database.saveProfile(updated);
   }
 
-  Future<void> updateAvatar(String avatar) async {
-    if (avatar.trim().isEmpty) return;
+  Future<String?> chooseAvatar() async {
+    final path = await avatarService.pickAndStore(
+      previousPath: profile.value?.avatarPath,
+    );
+    if (path == null) return null;
     final updated = (profile.value ?? const LocalProfile()).copyWith(
-      avatar: avatar,
+      avatarPath: path,
     );
     profile.value = updated;
     await database.saveProfile(updated);
+    return path;
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {

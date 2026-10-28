@@ -5,16 +5,19 @@ import 'package:flutter/services.dart';
 
 import '../theme/app_theme.dart';
 import '../utils/responsive.dart';
+import '../widgets/local_avatar.dart';
 
 /// 宽屏应用的液体玻璃侧边栏。
 class DesktopSidebar extends StatelessWidget {
   final int index;
+  final String? avatarPath;
   final ValueChanged<int> onChanged;
 
   const DesktopSidebar({
     super.key,
     required this.index,
     required this.onChanged,
+    this.avatarPath,
   });
 
   static const _icons = <IconData>[
@@ -74,7 +77,7 @@ class DesktopSidebar extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _BrandHeader(isDark: isDark),
+                _BrandHeader(isDark: isDark, avatarPath: avatarPath),
                 SizedBox(height: r.gapLg),
                 Container(
                   height: 1,
@@ -120,8 +123,9 @@ class DesktopSidebar extends StatelessWidget {
 
 class _BrandHeader extends StatelessWidget {
   final bool isDark;
+  final String? avatarPath;
 
-  const _BrandHeader({required this.isDark});
+  const _BrandHeader({required this.isDark, required this.avatarPath});
 
   @override
   Widget build(BuildContext context) {
@@ -129,30 +133,17 @@ class _BrandHeader extends StatelessWidget {
     final palette = context.palette;
     return Row(
       children: [
-        Container(
-          width: r.touchTarget * 1.25,
-          height: r.touchTarget * 1.25,
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [AppColors.primary, AppColors.accent],
+        LocalAvatar(
+          imagePath: avatarPath,
+          size: r.touchTarget * 1.25,
+          iconSize: r.iconLg,
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.28),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
             ),
-            borderRadius: BorderRadius.circular(r.radiusLg),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.28),
-                blurRadius: 18,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: Icon(
-            Icons.flight_takeoff_rounded,
-            color: Colors.white,
-            size: r.iconLg,
-          ),
+          ],
         ),
         SizedBox(width: r.gapSm),
         Expanded(

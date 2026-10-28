@@ -6,8 +6,13 @@ import '../utils/responsive.dart';
 
 class AchievementGrid extends StatelessWidget {
   final List<Achievement> achievements;
+  final bool embedded;
 
-  const AchievementGrid({super.key, required this.achievements});
+  const AchievementGrid({
+    super.key,
+    required this.achievements,
+    this.embedded = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +20,7 @@ class AchievementGrid extends StatelessWidget {
     final unlocked = achievements.where((item) => item.unlocked).length;
 
     return Container(
-      margin: r.padH(1.4),
+      margin: embedded ? EdgeInsets.zero : r.padH(1.4),
       padding: r.padAll(1.1),
       decoration: BoxDecoration(
         color: context.palette.card,
@@ -53,7 +58,9 @@ class AchievementGrid extends StatelessWidget {
           SizedBox(height: r.gapSm),
           LayoutBuilder(
             builder: (context, constraints) {
-              final cardWidth = (constraints.maxWidth - r.gapSm) / 2;
+              final columns = constraints.maxWidth < 500 ? 1 : 2;
+              final cardWidth =
+                  (constraints.maxWidth - r.gapSm * (columns - 1)) / columns;
               return Wrap(
                 spacing: r.gapSm,
                 runSpacing: r.gapSm,

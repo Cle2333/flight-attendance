@@ -79,6 +79,7 @@ class RecordsScreen extends StatelessWidget {
     BuildContext context,
     AppState state, {
     bool stacked = false,
+    bool flush = false,
   }) {
     return Obx(() {
       final total = state.totalRecords;
@@ -99,7 +100,7 @@ class RecordsScreen extends StatelessWidget {
       ];
 
       return Padding(
-        padding: context.r.padH(1.4),
+        padding: flush ? EdgeInsets.zero : context.r.padH(1.4),
         child: LayoutBuilder(
           builder: (context, constraints) {
             if (stacked) {
@@ -219,7 +220,7 @@ class RecordsScreen extends StatelessWidget {
     Responsive r,
   ) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(r.gapLg, r.gapLg, r.gapLg, 0),
+      padding: EdgeInsets.fromLTRB(r.gapMd, r.gapMd, r.gapMd, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -228,41 +229,49 @@ class RecordsScreen extends StatelessWidget {
             subtitle: '日历、月报与每一次起飞',
             desktop: true,
           ),
-          SizedBox(height: r.gapLg),
+          SizedBox(height: r.gapMd),
           Expanded(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.only(bottom: r.gapLg),
+                    padding: EdgeInsets.only(bottom: r.gapMd),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Obx(() => _buildScaledCalendar(context, ctrl, state)),
+                        Obx(() => _buildDesktopCalendar(context, ctrl, state)),
                         SizedBox(height: r.gapMd),
                         const _SectionLabel(text: '快速统计'),
-                        _buildQuickStats(context, state, stacked: true),
+                        _buildQuickStats(
+                          context,
+                          state,
+                          stacked: true,
+                          flush: true,
+                        ),
                       ],
                     ),
                   ),
                 ),
-                SizedBox(width: r.gapLg),
+                SizedBox(width: r.gapMd),
                 Expanded(
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.only(bottom: r.gapLg),
+                    padding: EdgeInsets.only(bottom: r.gapMd),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         Obx(
                           () => MonthlyReportCard(
                             report: state.monthlyReport(ctrl.calDate.value),
+                            embedded: true,
                           ),
                         ),
                         SizedBox(height: r.gapMd),
                         Obx(
-                          () =>
-                              AchievementGrid(achievements: state.achievements),
+                          () => AchievementGrid(
+                            achievements: state.achievements,
+                            embedded: true,
+                          ),
                         ),
                         SizedBox(height: r.gapMd),
                         _buildDesktopRecordCard(context, ctrl, state, r),
@@ -278,30 +287,18 @@ class RecordsScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildScaledCalendar(
+  Widget _buildDesktopCalendar(
     BuildContext context,
     RecordsController ctrl,
     AppState state,
   ) {
-    const designWidth = 430.0;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final calendar = CalendarWidget(
-          currentDate: ctrl.calDate.value,
-          onMonthChanged: ctrl.shiftMonth,
-          hasRecordOn: state.hasRecordOn,
-          onDateTapped: ctrl.navigateToDay,
-          expandedNotifier: ctrl.calendarExpanded,
-        );
-        if (constraints.maxWidth >= designWidth) {
-          return calendar;
-        }
-        return FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.topCenter,
-          child: SizedBox(width: designWidth, child: calendar),
-        );
-      },
+    return CalendarWidget(
+      currentDate: ctrl.calDate.value,
+      onMonthChanged: ctrl.shiftMonth,
+      hasRecordOn: state.hasRecordOn,
+      onDateTapped: ctrl.navigateToDay,
+      expandedNotifier: ctrl.calendarExpanded,
+      embedded: true,
     );
   }
 
@@ -314,7 +311,7 @@ class RecordsScreen extends StatelessWidget {
     return Obx(() {
       final grouped = ctrl.groupedRecords(state.records);
       return Container(
-        margin: r.padH(1.4),
+        margin: EdgeInsets.zero,
         padding: r.padAll(1.1),
         decoration: BoxDecoration(
           color: context.palette.card,

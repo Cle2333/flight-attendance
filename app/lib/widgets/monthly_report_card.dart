@@ -9,8 +9,13 @@ import 'stats_grid.dart';
 
 class MonthlyReportCard extends StatelessWidget {
   final MonthlyReport report;
+  final bool embedded;
 
-  const MonthlyReportCard({super.key, required this.report});
+  const MonthlyReportCard({
+    super.key,
+    required this.report,
+    this.embedded = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +29,7 @@ class MonthlyReportCard extends StatelessWidget {
     final averageLabel = report.averageTime?.label ?? '--:--';
 
     return Container(
-      margin: r.padH(1.4),
+      margin: embedded ? EdgeInsets.zero : r.padH(1.4),
       padding: r.padAll(1.1),
       decoration: BoxDecoration(
         color: context.palette.card,
@@ -62,52 +67,54 @@ class MonthlyReportCard extends StatelessWidget {
           SizedBox(height: r.gapMd),
           LayoutBuilder(
             builder: (context, constraints) {
+              final cards = [
+                StatCard(
+                  icon: '✈️',
+                  iconBg: context.palette.primaryBg,
+                  value: '${report.total}',
+                  label: '本月起飞 · ${report.monthOverMonthLabel}',
+                ),
+                StatCard(
+                  icon: '📅',
+                  iconBg: context.palette.successBg,
+                  value: '${report.activeDays}/${report.daysInMonth}',
+                  label: '有记录的天数',
+                ),
+                StatCard(
+                  icon: '🏙️',
+                  iconBg: context.palette.warningBg,
+                  value: busiest,
+                  label: busiestLabel,
+                ),
+                StatCard(
+                  icon: '🕰️',
+                  iconBg: context.palette.infoBg,
+                  value: averageLabel,
+                  label: '平均起飞时间',
+                ),
+              ];
+              if (constraints.maxWidth < 480) {
+                return Column(
+                  children: [
+                    for (var i = 0; i < cards.length; i++) ...[
+                      cards[i],
+                      if (i < cards.length - 1) SizedBox(height: r.gapSm),
+                    ],
+                  ],
+                );
+              }
               final cardWidth = (constraints.maxWidth - r.gapSm) / 2;
               return Wrap(
                 spacing: r.gapSm,
                 runSpacing: r.gapSm,
                 children: [
-                  SizedBox(
-                    width: cardWidth,
-                    child: StatCard(
-                      icon: '✈️',
-                      iconBg: context.palette.primaryBg,
-                      value: '${report.total}',
-                      label: '本月起飞 · ${report.monthOverMonthLabel}',
-                    ),
-                  ),
-                  SizedBox(
-                    width: cardWidth,
-                    child: StatCard(
-                      icon: '📅',
-                      iconBg: context.palette.successBg,
-                      value: '${report.activeDays}/${report.daysInMonth}',
-                      label: '有记录的天数',
-                    ),
-                  ),
-                  SizedBox(
-                    width: cardWidth,
-                    child: StatCard(
-                      icon: '🏙️',
-                      iconBg: context.palette.warningBg,
-                      value: busiest,
-                      label: busiestLabel,
-                    ),
-                  ),
-                  SizedBox(
-                    width: cardWidth,
-                    child: StatCard(
-                      icon: '🕰️',
-                      iconBg: context.palette.infoBg,
-                      value: averageLabel,
-                      label: '平均起飞时间',
-                    ),
-                  ),
+                  for (final card in cards)
+                    SizedBox(width: cardWidth, child: card),
                 ],
               );
             },
           ),
-          SizedBox(height: r.gapMd),
+          SizedBox(height: r.gapSm),
           MonthlyBarChart(
             dailyCounts: report.dailyCounts,
             daysInMonth: report.daysInMonth,
