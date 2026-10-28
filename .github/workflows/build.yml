@@ -240,7 +240,7 @@ jobs:
           set -e
           VERSION="${TAG_NAME#v}"
           cd dist
-          find app -type f -print0 | sort -z | xargs -0 sha256sum | sed 's#  app/#  #' > SHA256SUMS.txt
+          find app -type f -print0 | sort -z | xargs -0 sha256sum | sed 's#  app/.*/#  #' > SHA256SUMS.txt
           cat > release-notes.md <<EOF
           ## 航班打卡 ${TAG_NAME}
 
