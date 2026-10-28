@@ -44,7 +44,7 @@ class RecordsScreen extends StatelessWidget {
       children: [
         Padding(
           padding: r.padFromLTRB(1.2, 0.9, 1.2, 0.5),
-          child: _RecordsPageHeader(
+          child: RecordsPageHeader(
             title: '航班记录',
             subtitle: '日历、月报与每一次起飞',
             onManualAdd: () => _openManualRecordDialog(state),
@@ -230,7 +230,7 @@ class RecordsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _RecordsPageHeader(
+          RecordsPageHeader(
             title: '航班记录',
             subtitle: '日历、月报与每一次起飞',
             desktop: true,
@@ -416,13 +416,14 @@ class RecordsScreen extends StatelessWidget {
   }
 }
 
-class _RecordsPageHeader extends StatelessWidget {
+class RecordsPageHeader extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool desktop;
   final VoidCallback? onManualAdd;
 
-  const _RecordsPageHeader({
+  const RecordsPageHeader({
+    super.key,
     required this.title,
     required this.subtitle,
     this.desktop = false,
@@ -469,6 +470,9 @@ class _RecordsPageHeader extends StatelessWidget {
             children: [
               Text(
                 title,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: desktop ? r.text3xl : r.text2xl,
                   fontWeight: FontWeight.w800,
@@ -494,6 +498,11 @@ class _RecordsPageHeader extends StatelessWidget {
             onPressed: onManualAdd,
             icon: const Icon(Icons.add_rounded, size: 18),
             label: Text(desktop ? '手动补录' : '补录'),
+            style: FilledButton.styleFrom(
+              minimumSize: Size(0, r.touchTarget * 1.15),
+              padding: EdgeInsets.symmetric(horizontal: r.gapSm),
+              visualDensity: VisualDensity.compact,
+            ),
           ),
         ],
       ],

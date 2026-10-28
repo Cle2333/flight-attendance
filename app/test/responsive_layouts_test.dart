@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flight_attendance_app/models/record.dart';
 import 'package:flight_attendance_app/models/record_statistics.dart';
 import 'package:flight_attendance_app/screens/desktop_sidebar.dart';
+import 'package:flight_attendance_app/screens/records_screen.dart';
 import 'package:flight_attendance_app/theme/app_theme.dart';
 import 'package:flight_attendance_app/widgets/achievement_grid.dart';
 import 'package:flight_attendance_app/widgets/calendar_widget.dart';
@@ -45,6 +46,30 @@ void main() {
     await tester.pumpWidget(_recordsPreview(desktop: false));
     expect(find.text('航班记录'), findsOneWidget);
     expect(find.text('快速统计'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('记录页标题在手机宽度保持单行且补录按钮可见', (tester) async {
+    await _setSize(tester, const Size(390, 844));
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light(),
+        home: Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.all(20),
+            child: RecordsPageHeader(
+              title: '航班记录',
+              subtitle: '日历、月报与每一次起飞',
+              onManualAdd: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final titleSize = tester.getSize(find.text('航班记录'));
+    expect(titleSize.width, greaterThan(titleSize.height));
+    expect(find.text('补录'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
