@@ -1,7 +1,7 @@
 name: flight_attendance_app
 description: "航班打卡 - 纯本地记录每一次起飞"
 publish_to: 'none'
-version: 0.2.0+3
+version: 0.2.1+4
 
 environment:
   sdk: ^3.12.2
