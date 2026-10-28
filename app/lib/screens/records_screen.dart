@@ -9,6 +9,7 @@ import '../utils/formatters.dart';
 import '../utils/responsive.dart';
 import '../widgets/achievement_grid.dart';
 import '../widgets/calendar_widget.dart';
+import '../widgets/manual_record_dialog.dart';
 import '../widgets/monthly_report_card.dart';
 import '../widgets/stats_grid.dart';
 import 'record_detail_screen.dart';
@@ -43,9 +44,10 @@ class RecordsScreen extends StatelessWidget {
       children: [
         Padding(
           padding: r.padFromLTRB(1.2, 0.9, 1.2, 0.5),
-          child: const _RecordsPageHeader(
+          child: _RecordsPageHeader(
             title: '航班记录',
             subtitle: '日历、月报与每一次起飞',
+            onManualAdd: () => _openManualRecordDialog(state),
           ),
         ),
         Obx(
@@ -213,6 +215,10 @@ class RecordsScreen extends StatelessWidget {
     });
   }
 
+  Future<void> _openManualRecordDialog(AppState state) async {
+    await Get.dialog(ManualRecordDialog(state: state));
+  }
+
   Widget _buildDesktop(
     BuildContext context,
     RecordsController ctrl,
@@ -224,10 +230,11 @@ class RecordsScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const _RecordsPageHeader(
+          _RecordsPageHeader(
             title: '航班记录',
             subtitle: '日历、月报与每一次起飞',
             desktop: true,
+            onManualAdd: () => _openManualRecordDialog(state),
           ),
           SizedBox(height: r.gapMd),
           Expanded(
@@ -413,11 +420,13 @@ class _RecordsPageHeader extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool desktop;
+  final VoidCallback? onManualAdd;
 
   const _RecordsPageHeader({
     required this.title,
     required this.subtitle,
     this.desktop = false,
+    this.onManualAdd,
   });
 
   @override
@@ -454,27 +463,39 @@ class _RecordsPageHeader extends StatelessWidget {
           ),
         ),
         SizedBox(width: r.gapSm),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: desktop ? r.text3xl : r.text2xl,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.8,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: desktop ? r.text3xl : r.text2xl,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -0.8,
+                ),
               ),
-            ),
-            SizedBox(height: r.gap2xs),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: r.textXs,
-                color: context.palette.textSecondary,
+              SizedBox(height: r.gap2xs),
+              Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: r.textXs,
+                  color: context.palette.textSecondary,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
+        if (onManualAdd != null) ...[
+          SizedBox(width: r.gapXs),
+          FilledButton.tonalIcon(
+            onPressed: onManualAdd,
+            icon: const Icon(Icons.add_rounded, size: 18),
+            label: Text(desktop ? '手动补录' : '补录'),
+          ),
+        ],
       ],
     );
   }

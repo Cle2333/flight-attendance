@@ -8,6 +8,13 @@ import '../models/record.dart';
 
 enum RecordExportFormat { json, csv }
 
+class PickedRecordContent {
+  final String name;
+  final String content;
+
+  const PickedRecordContent({required this.name, required this.content});
+}
+
 class PickedRecordFile {
   final String name;
   final List<FlightRecord> records;
@@ -26,6 +33,18 @@ class RecordFileService {
     extensions: ['csv'],
     mimeTypes: ['text/csv'],
   );
+
+  Future<PickedRecordContent?> pickImportContent() async {
+    final file = await openFile(
+      acceptedTypeGroups: const [_jsonGroup, _csvGroup],
+      confirmButtonText: '导入',
+    );
+    if (file == null) return null;
+    return PickedRecordContent(
+      name: file.name,
+      content: await file.readAsString(),
+    );
+  }
 
   Future<PickedRecordFile?> pickImportFile() async {
     final file = await openFile(

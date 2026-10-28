@@ -10,6 +10,7 @@ import '../theme/app_theme.dart';
 import '../utils/formatters.dart';
 import '../utils/responsive.dart';
 import '../widgets/local_avatar.dart';
+import '../widgets/manual_record_dialog.dart';
 import '../widgets/picker_modals.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -315,9 +316,16 @@ class ProfileScreen extends StatelessWidget {
         embedded: embedded,
         children: [
           _Row(
-            icon: '📥',
+            icon: '✍️',
             color: context.palette.successBg,
-            title: '导入打卡记录',
+            title: '手动补录记录',
+            subtitle: '逐条补录旧版本数据，支持批量输入多行',
+            onTap: () => _openManualRecordDialog(state),
+          ),
+          _Row(
+            icon: '📥',
+            color: context.palette.primaryBg,
+            title: '从文件导入',
             subtitle: '支持 JSON 备份与 CSV 表格，重复记录自动跳过',
             onTap: () => _importRecords(state),
           ),
@@ -419,6 +427,10 @@ class ProfileScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _openManualRecordDialog(AppState state) async {
+    await Get.dialog(ManualRecordDialog(state: state));
   }
 
   Future<void> _pickAvatar(AppState state) async {
